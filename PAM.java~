@@ -1,0 +1,27 @@
+/*
+*Framework file
+*/
+
+import java.util.*;
+import java.io.*;
+
+
+public class PAM {
+  
+  //Input fields
+  private BufferedReader file;
+  private String[] attributeNames;
+  //Computed/resultant fields
+  private ArrayList<Data> data;
+  private ArrayList<Cluster> clusters = new ArrayList<Cluster>();
+  private double manWSS = 0;
+  private double eucWSS = 0;
+  private double infoGain;
+  private double manBSS = 0;
+  private double eucBSS = 0;
+  private boolean euclidean;
+  private double weightedEntropy;
+  
+  
+  
+  

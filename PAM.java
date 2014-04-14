@@ -9,13 +9,13 @@ import java.io.*;
 public class PAM {
   
   
-  private int k;
+  public int k;
   //Input fields
   private BufferedReader file;
   private String[] attributeNames;
   //Computed/resultant fields
   private ArrayList<Data> data;
-  ArrayList<Data> medoids = new ArrayList<Data>;
+  ArrayList<Data> medoids = new ArrayList<Data>();
   
   private ArrayList<PAMCluster> clusters = new ArrayList<PAMCluster>();
   private double manWSS = 0;
@@ -32,11 +32,11 @@ public class PAM {
   public double getEucBSS() {return this.eucBSS;}
   public double getManBSS() {return this.manBSS;}
   public double getEntropy() {return this.infoGain;}
-  public ArrayList<Cluster> getClusters() {return this.clusters;}
+  public ArrayList<PAMCluster> getClusters() {return this.clusters;}
   public boolean getEuclidean() {return this.euclidean;}
   public double getWeightedEntropy() {return this.weightedEntropy;}
   
-  public PAM (String filename, String[] attributeNames, int k) throws IOException {
+  public PAM (String filename, String[] attributeNames) throws IOException {
     try {
       this.file = new BufferedReader(new FileReader(filename));
     }
@@ -44,7 +44,6 @@ public class PAM {
       System.out.println("Can not find file: " + filename);
     }
     this.attributeNames = attributeNames;
-    this.k = k
     initData();
   }
   
@@ -91,11 +90,12 @@ public class PAM {
     
     //select k points as initial medoids
     for (int i = 0; i < k; i++) {
-      int randomVal = (int) Math.round(Math.random()*(this.data.size() -));
+      int randomVal = (int) Math.round(Math.random()*(this.data.size() -1));
       Data medoid = this.data.get(randomVal);
       this.clusters.add(new PAMCluster(medoid));
       medoids.add(medoid);
     }
+  }
     
     public void cluster() {
       for (int i = 0; i < this.data.size(); i++) {
@@ -115,7 +115,14 @@ public class PAM {
   }
     
     public void swap() {
-      for (int i = 0; i < this.data.size() - k; i++) {
+      for (int i = 0; i < this.medoids.size(); i++) {
+        data.remove(i);
+      }
+    }
+      
+      
+      
+        
         
   
   //java PAM <filename>

@@ -33,29 +33,29 @@ public class PAMCluster {
     }
   }
   
-  public double classCount(String classLabel) {
+ /* public double classCount(boolean classLabel) {
     double counter = 0;
     for (int i = 0; i < cluster.size(); i++) {
-      if (classLabel.equals(cluster.get(i).getClassLabel())) { counter++;}
+      if (cluster.get(i).getBuzz()) { counter++;}
     }
     return counter;
-  }
+  }*/
   
-  public double classCount2(String classLabel, ArrayList<Data> data) {
+  /*public double classCount2(boolean classLabel, ArrayList<Data> data) {
     double counter = 0; 
     for (int i = 0; i < data.size(); i++) {
-      counter = (classLabel.equals(data.get(i).getClassLabel())) ? counter+1 : counter;
+      counter = (data.get(i).getBuzz()) ? counter+1 : counter;
     }
     return counter;
-  }
+  }*/
  
   //TODO
-  public void calculateSplitInfo(ArrayList<String> classLabels, ArrayList<Data> data) {
+  /*public void calculateSplitInfo(ArrayList<String> classLabels, ArrayList<Data> data) {
     for (int i = 0; i < classLabels.size(); i++) {     
       double probability = classCount2(classLabels.get(i), data)/(double) data.size();
       this.weightedEntropy += -(probability * log(probability, classLabels.size()));
     }
-  }
+  }*/
     
   public void addPoint(Data point) {
     this.cluster.add(point);
@@ -68,13 +68,13 @@ public class PAMCluster {
   
   
   //TODO
-  public void calculateEntropy(ArrayList<String> classLabels) {
+  /*public void calculateEntropy(ArrayList<String> classLabels) {
     double entropySum = 0;
     for (int i = 0; i < classLabels.size(); i++) {
       double probability = classCount(classLabels.get(i))/(double) cluster.size();
       entropySum += -(probability * log(probability, classLabels.size()));
     }
-  }
+  }*/
 }
 
 

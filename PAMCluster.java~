@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class Cluster {
+public class PAMCluster {
   private Data centroid;
   private ArrayList<Data> cluster;
   private double eucWSSmeasure= 0;

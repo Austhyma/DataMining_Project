@@ -14,7 +14,7 @@ public class PAM {
   private BufferedReader file;
   private String[] attributeNames;
   //Computed/resultant fields
-  private ArrayList<Data> data;
+  private ArrayList<Data> data = new ArrayList<Data>();
   ArrayList<Data> medoids = new ArrayList<Data>();
   
   private ArrayList<PAMCluster> clusters = new ArrayList<PAMCluster>();

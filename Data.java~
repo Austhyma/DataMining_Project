@@ -14,6 +14,10 @@ public class Data {
     this.buzz = buzz;
   }
   
+  public double getAttribute(String key) {
+    return attributes.get(key);
+  }
+  
   public boolean getBuzz() {return this.buzz;}
   public HashMap<String, Double> getAttributes() {return this.attributes;}
 }

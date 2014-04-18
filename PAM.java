@@ -89,14 +89,18 @@ public class PAM {
   public void kMedoids() {
     
     //select k points as initial medoids
+    Data medoid = new Data();
     for (int i = 0; i < k; i++) {
       int randomVal = (int) Math.round(Math.random()*(this.data.size() -1));
-      Data medoid = this.data.get(randomVal);
+      medoid = this.data.get(randomVal);
       this.clusters.add(new PAMCluster(medoid));
       medoids.add(medoid);
+      data.remove(medoid);
     }
   }
     
+    
+  
     public void cluster() {
       for (int i = 0; i < this.data.size(); i++) {
         int closestMedoid = 0;
@@ -114,11 +118,13 @@ public class PAM {
     }
   }
     
+    //TODO
     public void swap() {
-      for (int i = 0; i < this.medoids.size(); i++) {
-        data.remove(i);
-      }
-    }
+      for (int i = 0; i < medoids.size(); i++) {}
+        for (int i = 0; i < data.size(); i++) {}
+          
+    }     
+    
       
       
       

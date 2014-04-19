@@ -120,10 +120,25 @@ public class PAM {
     
     //TODO
     public void swap() {
-      for (int i = 0; i < medoids.size(); i++) {}
-        for (int i = 0; i < data.size(); i++) {}
+      double totalCost = 0;
+      for (int i = 0; i < this.clusters.size(); i++) {
+        totalCost += clusters.get(i).getCost();
+      }
+    }
+      
+    
+        
+    
+     
+        
+      
+      
+    
+      
+            
           
-    }     
+          
+         
     
       
       

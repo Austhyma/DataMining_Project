@@ -10,6 +10,7 @@ public class PAMCluster extends Cluster {
   }
   
   public Data getMedoid() {return this.medoid;}
+  public void setMedoid(Data medoid) { this.medoid = medoid;}
 
  
   public double getCost() {return this.cost;}
@@ -23,6 +24,15 @@ public class PAMCluster extends Cluster {
       }
     }
   }
+  public void computeCost(Data point) {
+    for (int i = 0; i < points.size(); i++) {
+      for (Iterator<String> stuff = points.get(i).getAttributes().keySet().iterator() ; stuff.hasNext();) {
+        String current = stuff.next();
+        cost += Math.abs(point.getAttribute(current) - points.get(i).getAttribute(current));
+      }
+    }
+  }
+      
   
 }
   

@@ -97,6 +97,14 @@ public class PAM {
       medoids.add(medoid);
       data.remove(medoid);
     }
+    boolean done = false;
+    while (!done) {
+      cluster();
+      done = swap();
+      
+    }
+    
+    
   }
     
     
@@ -119,33 +127,31 @@ public class PAM {
   }
     
     //TODO
-    public void swap() {
+    public boolean swap() {
       double totalCost = 0;
-      for (int i = 0; i < this.clusters.size(); i++) {
+      Data temp = new Data();
+      double swapCost = 0;
+   
+      for (int i = 0; i < clusters.size(); i++) {
+         //compute the initial cost for how the data clustered based off of the random medoid assignment
         totalCost += clusters.get(i).getCost();
+        for (int j = 0; j < data.size(); j++) {    
+          //calculate the swapping cost
+          clusters.get(i).computeCost(data.get(j));
+          swapCost += clusters.get(i).getCost();
+          System.out.println(swapCost);
+          //if the swapping cost is less than the current cost     
+          if (swapCost < totalCost) {           
+            clusters.get(i).setMedoid(data.get(j));
+            medoids.remove(clusters.get(i).getMedoid());
+          }
+          else {
+            continue;
+          }
+        }
       }
+      return true;
     }
-      
-    
-        
-    
-     
-        
-      
-      
-    
-      
-            
-          
-          
-         
-    
-      
-      
-      
-        
-        
-  
   //java PAM <filename>
   public static void main(String[] args) throws IOException {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};

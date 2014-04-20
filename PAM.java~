@@ -15,7 +15,7 @@ public class PAM {
   private String[] attributeNames;
   //Computed/resultant fields
   private ArrayList<Data> data = new ArrayList<Data>();
-  ArrayList<Data> medoids = new ArrayList<Data>();
+  private ArrayList<Data> medoids = new ArrayList<Data>();
   
   private ArrayList<PAMCluster> clusters = new ArrayList<PAMCluster>();
   private double manWSS = 0;
@@ -87,7 +87,6 @@ public class PAM {
   }
   
   public void kMedoids() {
-    
     //select k points as initial medoids
     Data medoid = new Data();
     for (int i = 0; i < k; i++) {
@@ -97,10 +96,16 @@ public class PAM {
       medoids.add(medoid);
       data.remove(medoid);
     }
+    boolean done = false;
+    int iterations = 0;
+    
+    while (iterations < 50) {
+      cluster();
+      swap();
+      iterations++;
+    }
   }
-    
-    
-  
+
     public void cluster() {
       for (int i = 0; i < this.data.size(); i++) {
         int closestMedoid = 0;
@@ -119,33 +124,32 @@ public class PAM {
   }
     
     //TODO
-    public void swap() {
+    public boolean swap() {
       double totalCost = 0;
-      for (int i = 0; i < this.clusters.size(); i++) {
+      Data temp = new Data();
+      double swapCost = 0;
+   
+      for (int i = 0; i < clusters.size(); i++) {
+         //compute the initial cost for how the data clustered based off of the random medoid assignment
         totalCost += clusters.get(i).getCost();
+        for (int j = 0; j < data.size(); j++) {    
+          //calculate the swapping cost
+          clusters.get(i).computeCost(data.get(j));
+          swapCost += clusters.get(i).getCost();
+          System.out.println(swapCost);
+          //if the swapping cost is less than the current cost     
+          if (swapCost < totalCost) {
+            data.add(clusters.get(i).getMedoid());
+            medoids.remove(clusters.get(i).getMedoid());
+            clusters.get(i).setMedoid(data.get(j));
+          }
+          else {
+            continue;
+          }
+        }
       }
+      return true;
     }
-      
-    
-        
-    
-     
-        
-      
-      
-    
-      
-            
-          
-          
-         
-    
-      
-      
-      
-        
-        
-  
   //java PAM <filename>
   public static void main(String[] args) throws IOException {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};

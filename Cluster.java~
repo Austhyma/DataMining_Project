@@ -2,7 +2,7 @@ import java.util.*;
 
 public class Cluster {
   //initial fields
-  private ArrayList<Data> points;
+  protected ArrayList<Data> points;
   //computed fields
   private double eucWSSmeasure= 0;
   private double manWSSmeasure = 0;

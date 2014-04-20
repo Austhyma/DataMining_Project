@@ -4,10 +4,10 @@ public class Cluster {
   //initial fields
   protected ArrayList<Data> points;
   //computed fields
-  private double eucWSSmeasure= 0;
-  private double manWSSmeasure = 0;
-  private double entropy = 0;
-  private double weightedEntropy = 0;
+  protected double eucWSSmeasure= 0;
+  protected double manWSSmeasure = 0;
+  protected double entropy = 0;
+  protected double weightedEntropy = 0;
   
   public Cluster(ArrayList<Data> points) {
     this.points = points;

@@ -15,7 +15,7 @@ public class PAM {
   private String[] attributeNames;
   //Computed/resultant fields
   private ArrayList<Data> data = new ArrayList<Data>();
-  ArrayList<Data> medoids = new ArrayList<Data>();
+  private ArrayList<Data> medoids = new ArrayList<Data>();
   
   private ArrayList<PAMCluster> clusters = new ArrayList<PAMCluster>();
   private double manWSS = 0;
@@ -47,6 +47,14 @@ public class PAM {
     initData();
   }
   
+  
+  public void calculateWSS() {
+    for (int i = 0; i < clusters.size(); i++) {
+      clusters.get(i).calculateWSS();
+      eucWSS += clusters.get(i).getEucWSS();
+      manWSS += clusters.get(i).getManWSS();
+    }  
+  }
   
   public void initData() throws IOException {
     String line = this.file.readLine();
@@ -87,7 +95,6 @@ public class PAM {
   }
   
   public void kMedoids() {
-    
     //select k points as initial medoids
     Data medoid = new Data();
     for (int i = 0; i < k; i++) {
@@ -98,17 +105,15 @@ public class PAM {
       data.remove(medoid);
     }
     boolean done = false;
-    while (!done) {
+    int iterations = 0;
+    
+    while (iterations < 50) {
       cluster();
-      done = swap();
-      
+      medoids = swap();
+      iterations++;
     }
-    
-    
   }
-    
-    
-  
+
     public void cluster() {
       for (int i = 0; i < this.data.size(); i++) {
         int closestMedoid = 0;
@@ -127,7 +132,7 @@ public class PAM {
   }
     
     //TODO
-    public boolean swap() {
+    public ArrayList<Data> swap() {
       double totalCost = 0;
       Data temp = new Data();
       double swapCost = 0;
@@ -141,16 +146,20 @@ public class PAM {
           swapCost += clusters.get(i).getCost();
           System.out.println(swapCost);
           //if the swapping cost is less than the current cost     
-          if (swapCost < totalCost) {           
-            clusters.get(i).setMedoid(data.get(j));
+          if (swapCost < totalCost) {
+            //add the old medoid data point back into the arraylist of data
+            data.add(clusters.get(i).getMedoid());
             medoids.remove(clusters.get(i).getMedoid());
+            //add the new data point to the medoid arrayList and removie it from the whole data set
+            clusters.get(i).setMedoid(data.get(j));
+            medoids.add(data.get(j));
           }
           else {
             continue;
           }
         }
       }
-      return true;
+      return medoids;
     }
   //java PAM <filename>
   public static void main(String[] args) throws IOException {

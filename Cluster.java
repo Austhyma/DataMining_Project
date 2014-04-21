@@ -29,7 +29,7 @@ public class Cluster {
   public double getEntropy() {return this.entropy;}
   
   //This will need to be defined per each cluster child-class you can use the former code to figure it out.
-  public void calculateWSS() {
+  public abstract void calculateWSS() {
 //    for (int i = 0; i < points.size(); i++) {
 //      for (Iterator<String> stuff = points.get(i).getAttributes().keySet().iterator() ; stuff.hasNext();) {
 //        String current = stuff.next();

@@ -9,10 +9,12 @@ public class Optics {
   //Input fields
   private BufferedReader file;
   private String[] attributeNames;
+  private double epsilon;
+  private int minPoints;
   //Computed/resultant fields
-  private ArrayList<Data> dataset = new ArrayList<Data>();
+  private ArrayList<OpticsData> dataset = new ArrayList<OpticsData>();
   
-  public Optics (String filename, String[] attributeNames) throws IOException {
+  public Optics (String filename, String[] attributeNames, String epsilon, String minPoints) throws IOException {
     try {
       this.file = new BufferedReader(new FileReader(filename));
     }
@@ -20,6 +22,8 @@ public class Optics {
       System.out.println("Can not find file: " + filename);
     }
     this.attributeNames = attributeNames;
+    this.epsilon = Double.parseDouble(epsilon);
+    this.minPoints = Integer.parseInt(minPoints);
     initData();
   }
   
@@ -37,7 +41,7 @@ public class Optics {
         attributes.put(this.attributeNames[i], values.get(values.size()/2));
       }
       double buzzVal = Double.parseDouble(lineVals[lineVals.length - 1]);
-      this.dataset.add(new Data(attributes, (buzzVal == 1.0)));
+      this.dataset.add(new OpticsData(attributes, (buzzVal == 1.0)));
       line = file.readLine();
       //System.out.println("Line: " + count++);
     }
@@ -60,9 +64,9 @@ public class Optics {
     return a;
   }
   
-  //java Optics <filename>
+  //java Optics <filename> <epsilon> <minPoints>
   public static void main(String[] args) throws IOException {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};
-    Optics init = new Optics(args[0], initAttNames);
+    Optics init = new Optics(args[0], initAttNames, args[1], args[2]);
   }
 }

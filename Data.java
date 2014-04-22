@@ -8,6 +8,10 @@ public class Data {
   
   protected HashMap<String, Double> attributes;
   protected boolean buzz;
+  protected int closestMedoid;
+  
+  public void setClosestMedoid(int closestMedoid) {this.closestMedoid = closestMedoid;}
+  public int getClosestMedoid() {return this.closestMedoid;}
   
   public Data(HashMap<String, Double> dimensions, boolean buzz) {
     this.attributes = dimensions;

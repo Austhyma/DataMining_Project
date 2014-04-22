@@ -36,6 +36,10 @@ public class PAM {
   public boolean getEuclidean() {return this.euclidean;}
   public double getWeightedEntropy() {return this.weightedEntropy;}
   
+  public void computeGoodness() {
+    calculateWSS();
+  }
+  
   public PAM (String filename, String[] attributeNames) throws IOException {
     try {
       this.file = new BufferedReader(new FileReader(filename));
@@ -45,6 +49,7 @@ public class PAM {
     }
     this.attributeNames = attributeNames;
     initData();
+    kMedoids();
   }
   
   
@@ -116,20 +121,31 @@ public class PAM {
 
     public void cluster() {
       for (int i = 0; i < this.data.size(); i++) {
+        
         int closestMedoid = 0;
-        double smallest = -1;
+        double smallest = Double.POSITIVE_INFINITY;
         for (int j = 0; j < this.clusters.size(); j++) {
           double distance = 0;
            for (Iterator<String> attribute = this.data.get(i).getAttributes().keySet().iterator(); attribute.hasNext();) {
           String current = attribute.next();
-          double manValue = Math.abs(this.data.get(i).getAttribute(current) - this.clusters.get(j).getMedoid().getAttributes().get(current));
-          distance += (this.euclidean) ? Math.pow(manValue, 2) : manValue;
+          distance = Math.abs(this.data.get(i).getAttribute(current) - this.clusters.get(j).getMedoid().getAttributes().get(current));
+          //distance += (this.euclidean) ? Math.pow(manValue, 2) : manValue;          
         }
         if (distance > smallest) {closestMedoid = j; smallest = distance;}
       }
-      this.clusters.get(closestMedoid).addPoint(this.data.get(i));
+      this.data.get(i).setClosestMedoid(closestMedoid);
+    }
+    //Adds all points to their nearest cluster
+    for (int i = 0; i < this.clusters.size(); i++) {
+      ArrayList<Data> newStuff = new ArrayList<Data>();
+      for (int j = 0; j < this.data.size(); j++) {
+        if (this.data.get(j).getClosestMedoid() == i) newStuff.add(this.data.get(j));
+      }
+      this.clusters.get(i).setPoints(newStuff);
     }
   }
+  
+  
     
     //TODO
     public ArrayList<Data> swap() {
@@ -138,8 +154,9 @@ public class PAM {
       double swapCost = 0;
    
       for (int i = 0; i < clusters.size(); i++) {
-         //compute the initial cost for how the data clustered based off of the random medoid assignment
+         //compute the current cost
         totalCost += clusters.get(i).getCost();
+        System.out.println(totalCost);
         for (int j = 0; j < data.size(); j++) {    
           //calculate the swapping cost
           clusters.get(i).computeCost(data.get(j));
@@ -164,6 +181,9 @@ public class PAM {
   //java PAM <filename>
   public static void main(String[] args) throws IOException {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};
-    PAM init = new PAM(args[0], initAttNames);
+    String fileName = "Twitter/Absolute_labeling/Twitter-Absolute-Sigma-500.data";
+    PAM init = new PAM(fileName, initAttNames);
+    
   }
+
 }

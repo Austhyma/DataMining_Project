@@ -149,15 +149,16 @@ public class PAM {
     
     //TODO
     public void swap(Data point, Data otherPoint) {
+      
       //Swap the two points
       Data temp = point;
       point = otherPoint;
       otherPoint = temp;
       //Make sure the points are removed and added to their respective ArrayLists
-      medoids.remove(point);
-      data.add(point);
-      medoids.add(otherPoint);
-      data.remove(otherPoint);
+      //medoids.remove(point);
+      //data.add(point);
+      //medoids.add(otherPoint);
+      //data.remove(otherPoint);
     }
     
     public double computeCost(Data medoid) {
@@ -170,12 +171,12 @@ public class PAM {
         }
       }
         return totalCost;
-      }
+    }
+    
       
-      
-    public double lowestCost(double[] list){
-      double lowest = list.get(0);
-      for (int i = 0; i < list.size(); i++) {
+    public double lowestCost(HashMap<Double, Data> list){
+      double lowest = -9999;
+      for (double i = 0; i < list.keySet(); i++) {
         if (lowest < list.get(i)) { 
           lowest = list.get(i); 
         }
@@ -185,29 +186,32 @@ public class PAM {
             
     //TODO; might need to implement hashmap to have each cost associated with a data point
     public ArrayList<Data> bestMedoid() {
+      HashMap<Double, Data> potentialMedoids = new HashMap<Double, Data>();
       double swapCost = 0;
-      double currentCost = computeCost();
-      double[] costs;
       double bestCost;
+      double currentCost;
+      Data bestMedoid = new Data();
       for (int i = 0; i < medoids.size(); i++) {
+        currentCost = computeCost(medoids.get(i));
         for (int j = 0; j < data.size(); j++) {    
           swap(medoids.get(i), data.get(j));
           swapCost = computeCost(medoids.get(i));
           if (swapCost < currentCost) {
             currentCost = swapCost;
-            costs.add(swapCost);  
+            //put the list of better costs into a hashmap to be sorted through for the single best cost
+            potentialMedoids.put(currentCost, data.get(j));
           }
           else { swap(medoids.get(i), data.get(j)); }
         }
-        bestCost = lowestCost(costs);
-        
-        
-    
-          
-    }
+        bestCost = lowestCost(potentialMedoids);
+        bestMedoid = potentialMedoids.get(bestCost);
+        //Add and remove the data points from their respective ArrayLists
+        medoids.add(bestMedoid);
+        data.remove(bestMedoid);
+      }
       return medoids;
     }
-    
+  
   //java PAM <filename>
   public static void main(String[] args) throws IOException {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};

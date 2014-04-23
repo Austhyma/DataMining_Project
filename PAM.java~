@@ -149,41 +149,65 @@ public class PAM {
     
     //TODO
     public void swap(Data point, Data otherPoint) {
-      //Data temp = point;
-      //point = otherPoint;
-      //otherPoint = temp;
+      //Swap the two points
+      Data temp = point;
+      point = otherPoint;
+      otherPoint = temp;
+      //Make sure the points are removed and added to their respective ArrayLists
       medoids.remove(point);
       data.add(point);
       medoids.add(otherPoint);
       data.remove(otherPoint);
     }
-   
-    public ArrayList<Data> bestMedoid() {
+    
+    public double computeCost(Data medoid) {
       double totalCost = 0;
-      Data temp = new Data();
-      double swapCost = 0;
-      for (int i = 0; i < clusters.size(); i++) {
-         //compute the current cost
-        totalCost += clusters.get(i).getCost();
+      for (int i = 0; i < data.size(); i++) {
+        for (Iterator<String> stuff = data.get(i).getAttributes().keySet().iterator() ; stuff.hasNext();) {
+          String current = stuff.next();
+          totalCost += Math.abs(medoid.getAttribute(current) - data.get(i).getAttribute(current));
+          
+        }
       }
+        return totalCost;
+      }
+      
+      
+    public double lowestCost(double[] list){
+      double lowest = list.get(0);
+      for (int i = 0; i < list.size(); i++) {
+        if (lowest < list.get(i)) { 
+          lowest = list.get(i); 
+        }
+      }
+      return lowest;
+    }
+            
+    //TODO; might need to implement hashmap to have each cost associated with a data point
+    public ArrayList<Data> bestMedoid() {
+      double swapCost = 0;
+      double currentCost = computeCost();
+      double[] costs;
+      double bestCost;
       for (int i = 0; i < medoids.size(); i++) {
         for (int j = 0; j < data.size(); j++) {    
           swap(medoids.get(i), data.get(j));
-          
-          if (swapCost < totalCost) {
-            //add the old medoid data point back into the arraylist of data
-            data.add(clusters.get(i).getMedoid());
-            medoids.remove(clusters.get(i).getMedoid());
-            //add the new data point to the medoid arrayList and removie it from the whole data set
-            clusters.get(i).setMedoid(data.get(j));
-            medoids.add(data.get(j));
+          swapCost = computeCost(medoids.get(i));
+          if (swapCost < currentCost) {
+            currentCost = swapCost;
+            costs.add(swapCost);  
           }
+          else { swap(medoids.get(i), data.get(j)); }
         }
-      
-      
+        bestCost = lowestCost(costs);
+        
+        
+    
+          
     }
       return medoids;
     }
+    
   //java PAM <filename>
   public static void main(String[] args) throws IOException {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};

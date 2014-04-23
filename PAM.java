@@ -9,7 +9,7 @@ import java.io.*;
 public class PAM {
   
   
-  public int k;
+  public int k = 4;
   //Input fields
   private BufferedReader file;
   private String[] attributeNames;
@@ -50,6 +50,7 @@ public class PAM {
     this.attributeNames = attributeNames;
     initData();
     kMedoids();
+    
   }
   
   
@@ -114,21 +115,22 @@ public class PAM {
     
     while (iterations < 50) {
       cluster();
-      medoids = swap();
+      medoids = bestMedoid();
       iterations++;
     }
   }
 
     public void cluster() {
-      for (int i = 0; i < this.data.size(); i++) {
-        
+      for (int i = 0; i < this.data.size(); i++) {        
         int closestMedoid = 0;
         double smallest = Double.POSITIVE_INFINITY;
         for (int j = 0; j < this.clusters.size(); j++) {
           double distance = 0;
+          
            for (Iterator<String> attribute = this.data.get(i).getAttributes().keySet().iterator(); attribute.hasNext();) {
           String current = attribute.next();
           distance = Math.abs(this.data.get(i).getAttribute(current) - this.clusters.get(j).getMedoid().getAttributes().get(current));
+          
           //distance += (this.euclidean) ? Math.pow(manValue, 2) : manValue;          
         }
         if (distance > smallest) {closestMedoid = j; smallest = distance;}
@@ -144,25 +146,30 @@ public class PAM {
       this.clusters.get(i).setPoints(newStuff);
     }
   }
-  
-  
     
     //TODO
-    public ArrayList<Data> swap() {
+    public void swap(Data point, Data otherPoint) {
+      //Data temp = point;
+      //point = otherPoint;
+      //otherPoint = temp;
+      medoids.remove(point);
+      data.add(point);
+      medoids.add(otherPoint);
+      data.remove(otherPoint);
+    }
+   
+    public ArrayList<Data> bestMedoid() {
       double totalCost = 0;
       Data temp = new Data();
       double swapCost = 0;
-   
       for (int i = 0; i < clusters.size(); i++) {
          //compute the current cost
         totalCost += clusters.get(i).getCost();
-        System.out.println(totalCost);
+      }
+      for (int i = 0; i < medoids.size(); i++) {
         for (int j = 0; j < data.size(); j++) {    
-          //calculate the swapping cost
-          clusters.get(i).computeCost(data.get(j));
-          swapCost += clusters.get(i).getCost();
-          System.out.println(swapCost);
-          //if the swapping cost is less than the current cost     
+          swap(medoids.get(i), data.get(j));
+          
           if (swapCost < totalCost) {
             //add the old medoid data point back into the arraylist of data
             data.add(clusters.get(i).getMedoid());
@@ -171,11 +178,10 @@ public class PAM {
             clusters.get(i).setMedoid(data.get(j));
             medoids.add(data.get(j));
           }
-          else {
-            continue;
-          }
         }
-      }
+      
+      
+    }
       return medoids;
     }
   //java PAM <filename>
@@ -183,7 +189,6 @@ public class PAM {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};
     String fileName = "Twitter/Absolute_labeling/Twitter-Absolute-Sigma-500.data";
     PAM init = new PAM(fileName, initAttNames);
-    
   }
 
 }

@@ -174,21 +174,22 @@ public class PAM {
     }
     
       
-    public double lowestCost(HashMap<Double, Data> list){
+    public Data lowestCost(HashMap<Double, Data> list){
       double lowest = -9999;
-      for (double i = 0; i < list.keySet(); i++) {
-        if (lowest < list.get(i)) { 
-          lowest = list.get(i); 
+      Data lowestPoint = new Data();
+      for (Double key : list.keySet()) {
+        if (lowest < key) { 
+          lowest = key; 
+          lowestPoint = list.get(key);
         }
       }
-      return lowest;
+      return lowestPoint;
     }
             
     //TODO; might need to implement hashmap to have each cost associated with a data point
     public ArrayList<Data> bestMedoid() {
       HashMap<Double, Data> potentialMedoids = new HashMap<Double, Data>();
       double swapCost = 0;
-      double bestCost;
       double currentCost;
       Data bestMedoid = new Data();
       for (int i = 0; i < medoids.size(); i++) {
@@ -203,8 +204,7 @@ public class PAM {
           }
           else { swap(medoids.get(i), data.get(j)); }
         }
-        bestCost = lowestCost(potentialMedoids);
-        bestMedoid = potentialMedoids.get(bestCost);
+        bestMedoid = lowestCost(potentialMedoids);
         //Add and remove the data points from their respective ArrayLists
         medoids.add(bestMedoid);
         data.remove(bestMedoid);

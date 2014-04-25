@@ -110,41 +110,44 @@ public class PAM {
       medoids.add(medoid);
       data.remove(medoid);
     }
-    boolean done = false;
-    int iterations = 0;
-    
-    while (iterations < 50) {
-      cluster();
-      medoids = bestMedoid();
-      iterations++;
-    }
+    cluster();
+    bestMedoid();
+    cluster();
   }
 
     public void cluster() {
-      for (int i = 0; i < this.data.size(); i++) {        
-        int closestMedoid = 0;
-        double smallest = Double.POSITIVE_INFINITY;
-        for (int j = 0; j < this.clusters.size(); j++) {
-          double distance = 0;
-          
-           for (Iterator<String> attribute = this.data.get(i).getAttributes().keySet().iterator(); attribute.hasNext();) {
-          String current = attribute.next();
-          distance = Math.abs(this.data.get(i).getAttribute(current) - this.clusters.get(j).getMedoid().getAttributes().get(current));
-          
-          //distance += (this.euclidean) ? Math.pow(manValue, 2) : manValue;          
+      
+    //Associates points with nearest centroid
+    for (int i = 0; i < this.data.size()/1000; i++) {
+      int closestMedoid = 0;
+      double smallest = Double.POSITIVE_INFINITY;
+      for (int j = 0; j < this.clusters.size(); j++) {
+        double distance = distance(this.data.get(i), this.clusters.get(j).getMedoid());
+        if (distance < smallest) {
+          closestMedoid = j; 
+          smallest = distance;
         }
-        if (distance > smallest) {closestMedoid = j; smallest = distance;}
       }
       this.data.get(i).setClosestMedoid(closestMedoid);
     }
     //Adds all points to their nearest cluster
     for (int i = 0; i < this.clusters.size(); i++) {
       ArrayList<Data> newStuff = new ArrayList<Data>();
-      for (int j = 0; j < this.data.size(); j++) {
+      for (int j = 0; j < this.data.size()/1000; j++) {
         if (this.data.get(j).getClosestMedoid() == i) newStuff.add(this.data.get(j));
       }
       this.clusters.get(i).setPoints(newStuff);
     }
+  }
+  
+  public double distance(Data current, Data medoid) {
+    double distance = 0;
+    for (Iterator<String> attribute = current.getAttributes().keySet().iterator(); attribute.hasNext();) {
+      String currentAttribute = attribute.next();
+      double manValue = Math.abs(current.getAttribute(currentAttribute) - medoid.getAttribute(currentAttribute));
+      distance += manValue;
+    }
+    return distance;
   }
     
     //TODO
@@ -163,7 +166,7 @@ public class PAM {
     
     public double computeCost(Data medoid) {
       double totalCost = 0;
-      for (int i = 0; i < data.size(); i++) {
+      for (int i = 0; i < data.size()/1000; i++) {
         for (Iterator<String> stuff = data.get(i).getAttributes().keySet().iterator() ; stuff.hasNext();) {
           String current = stuff.next();
           totalCost += Math.abs(medoid.getAttribute(current) - data.get(i).getAttribute(current));
@@ -187,18 +190,20 @@ public class PAM {
     }
             
     //TODO; might need to implement hashmap to have each cost associated with a data point
-    public ArrayList<Data> bestMedoid() {
+    public void bestMedoid() {
       HashMap<Double, Data> potentialMedoids = new HashMap<Double, Data>();
       double swapCost = 0;
       double currentCost;
+      System.out.println(swapCost);
       Data bestMedoid = new Data();
       for (int i = 0; i < medoids.size(); i++) {
         currentCost = computeCost(medoids.get(i));
-        for (int j = 0; j < data.size(); j++) {    
+        for (int j = 0; j < data.size()/1000 - k; j++) {    
           swap(medoids.get(i), data.get(j));
           swapCost = computeCost(medoids.get(i));
           if (swapCost < currentCost) {
             currentCost = swapCost;
+            System.out.println(swapCost);
             //put the list of better costs into a hashmap to be sorted through for the single best cost
             potentialMedoids.put(currentCost, data.get(j));
           }
@@ -207,9 +212,11 @@ public class PAM {
         bestMedoid = lowestCost(potentialMedoids);
         //Add and remove the data points from their respective ArrayLists
         medoids.add(bestMedoid);
+        medoids.remove(medoids.get(i));
         data.remove(bestMedoid);
+        data.add(medoids.get(i));
       }
-      return medoids;
+      
     }
   
   //java PAM <filename>

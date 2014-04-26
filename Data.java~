@@ -14,6 +14,8 @@ public class Data {
     this.buzz = buzz;
   }
   
+  public Data() {}
+  
   public double getAttribute(String key) {
     return attributes.get(key);
   }

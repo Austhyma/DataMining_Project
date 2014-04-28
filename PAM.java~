@@ -116,8 +116,9 @@ public class PAM {
   }
 
     public void cluster() {
+      
     //Associates points with nearest centroid
-    for (int i = 0; i < this.data.size(); i++) {
+    for (int i = 0; i < this.data.size()/1000; i++) {
       int closestMedoid = 0;
       double smallest = Double.POSITIVE_INFINITY;
       for (int j = 0; j < this.clusters.size(); j++) {
@@ -125,7 +126,6 @@ public class PAM {
         if (distance < smallest) {
           closestMedoid = j; 
           smallest = distance;
-          System.out.println(distance);
         }
       }
       this.data.get(i).setClosestMedoid(closestMedoid);
@@ -133,7 +133,7 @@ public class PAM {
     //Adds all points to their nearest cluster
     for (int i = 0; i < this.clusters.size(); i++) {
       ArrayList<Data> newStuff = new ArrayList<Data>();
-      for (int j = 0; j < this.data.size(); j++) {
+      for (int j = 0; j < this.data.size()/1000; j++) {
         if (this.data.get(j).getClosestMedoid() == i) newStuff.add(this.data.get(j));
       }
       this.clusters.get(i).setPoints(newStuff);
@@ -166,7 +166,7 @@ public class PAM {
     
     public double computeCost(Data medoid) {
       double totalCost = 0;
-      for (int i = 0; i < data.size(); i++) {
+      for (int i = 0; i < data.size()/1000; i++) {
         for (Iterator<String> stuff = data.get(i).getAttributes().keySet().iterator() ; stuff.hasNext();) {
           String current = stuff.next();
           totalCost += Math.abs(medoid.getAttribute(current) - data.get(i).getAttribute(current));
@@ -194,10 +194,11 @@ public class PAM {
       HashMap<Double, Data> potentialMedoids = new HashMap<Double, Data>();
       double swapCost = 0;
       double currentCost;
+      System.out.println(swapCost);
       Data bestMedoid = new Data();
       for (int i = 0; i < medoids.size(); i++) {
         currentCost = computeCost(medoids.get(i));
-        for (int j = 0; j < data.size() - k; j++) {    
+        for (int j = 0; j < data.size()/1000 - k; j++) {    
           swap(medoids.get(i), data.get(j));
           swapCost = computeCost(medoids.get(i));
           if (swapCost < currentCost) {

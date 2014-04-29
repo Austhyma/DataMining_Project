@@ -9,13 +9,13 @@ import java.io.*;
 public class PAM {
   
   
-  public int k = 4;
+  public int k = 3;
   //Input fields
   private BufferedReader file;
   private String[] attributeNames;
   //Computed/resultant fields
   private ArrayList<Data> data = new ArrayList<Data>();
-  private ArrayList<Data> medoids = new ArrayList<Data>();
+  
   
   private ArrayList<PAMCluster> clusters = new ArrayList<PAMCluster>();
   private double manWSS = 0;
@@ -147,17 +147,28 @@ public class PAM {
   }
   
   public void kMedoids() {
+    
+    ArrayList<Data> medoids = new ArrayList<Data>();
+    
     //select k points as initial medoids
-    Data medoid = new Data();
     for (int i = 0; i < k; i++) {
+      Data medoid = new Data();
       int randomVal = (int) Math.round(Math.random()*(this.data.size() -1));
       medoid = this.data.get(randomVal);
       this.clusters.add(new PAMCluster(medoid));
       medoids.add(medoid);
       data.remove(medoid);
     }
-    bestMedoid();
+    
+    for (int j = 0; j < medoids.size(); j++) {
+      System.out.println("Medoid " + j + " cost before = " + computeCost(medoids.get(j)));
+    }
+    System.out.println("=================================================================");
+    bestMedoids(medoids);
     cluster();
+    computeGoodness();
+    System.out.println("InfoGain: " + infoGain);
+
   }
 
     public void cluster() {
@@ -198,23 +209,9 @@ public class PAM {
     return distance;
   }
     
-    //TODO
-    public void swap(Data point, Data otherPoint) {
-      
-      //Swap the two points
-      //Data temp = point;
-      //point = otherPoint;
-      //otherPoint = temp;
-      //Make sure the points are removed and added to their respective ArrayLists
-      medoids.remove(point);
-      data.add(point);
-      medoids.add(otherPoint);
-      data.remove(otherPoint);
-    }
-    
     public double computeCost(Data medoid) {
       double totalCost = 0;
-      for (int i = 0; i < data.size() - k; i++) {
+      for (int i = 0; i < data.size(); i++) {
         for (Iterator<String> stuff = data.get(i).getAttributes().keySet().iterator() ; stuff.hasNext();) {
           String current = stuff.next();
           totalCost += Math.abs(medoid.getAttribute(current) - data.get(i).getAttribute(current));
@@ -239,49 +236,45 @@ public class PAM {
     }
             
     
-    public void bestMedoid() {
-      HashMap<Double, Data> potentialMedoids = new HashMap<Double, Data>();
-      double swapCost = 0;
-      double currentCost;
-      System.out.println(swapCost);
-      int counter = 0;
-      int otherCounter = 0;
-      Data bestMedoid = new Data();
+    public void bestMedoids(ArrayList<Data> medoids) {
+      
       for (int i = 0; i < medoids.size(); i++) {
-        currentCost = computeCost(medoids.get(i));
-        otherCounter++;
-        
-        for (int j = 0; j < data.size() - k; j++) {         
-          //swap(medoids.get(i), data.get(j));
+        double currentCost = computeCost(medoids.get(i));
+        System.out.println("Current cost: " + currentCost);
+        int counter = 0;
+        double swapCost = 0;
+        Data bestMedoid = new Data();
+        for (int j = 0; j < data.size(); j++) {
           swapCost = computeCost(data.get(j));
+          //System.out.println("Swap " + swapCost);
+          //if the cost after swapping is less than current cost
           if (swapCost < currentCost && counter < 3) {
+            //the current configuration stays
             currentCost = swapCost;
             counter++;
-            System.out.println(counter);
-            System.out.println(swapCost);
-            //put the list of better costs into a hashmap to be sorted through for the single best cost
-            potentialMedoids.put(swapCost, data.get(j));
-            System.out.println("PotentialMedoids size: " + potentialMedoids.size());
+            bestMedoid = data.get(j);
+            System.out.println("Iteration: " + counter + " for medoid " + i);
+            System.out.println("Cost " + swapCost);
+            System.out.println();
           }
-          else if (swapCost >= currentCost && counter < 3) { continue; }
-          else {break;}
-        }
-        
-        //Add and remove the data points from their respective ArrayLists
-        bestMedoid = lowestCost(potentialMedoids);
-        double bestCost = computeCost(bestMedoid);
-        System.out.println("Best Cost: " + bestCost);
-        if (medoids.size() < k) {
-          medoids.add(bestMedoid);
-          data.remove(bestMedoid);
-          medoids.remove(medoids.get(i));
-          data.add(medoids.get(i));
+          
+          else if (counter < 3){
+            continue;
+          }
+          else {
+            medoids.set(i, bestMedoid);
+            data.set(j, medoids.get(i));
+            double bestCost = computeCost(bestMedoid);
+            System.out.println("Best Cost: " + bestCost);
+            System.out.println("Medoid " + i + " cost after = " + computeCost(medoids.get(i)));
+            System.out.println("=================================================================");
+            System.out.println();
+            break;
+          }
         }
         
       }
-      System.out.println("bestMedoid() complete");
-      System.out.println("Size of list of medoids after finding the best: " + medoids.size());
-      
+
     }
     
     public static void output(ArrayList<PAM> current, String filename) throws IOException {

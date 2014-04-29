@@ -18,6 +18,10 @@ public class Data {
     this.buzz = buzz;
   }
   
+  public Data(HashMap<String, Double> dimensions) {
+    this.attributes = dimensions;
+  }
+  
   public Data() {}
   
   public double getAttribute(String key) {

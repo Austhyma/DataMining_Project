@@ -9,13 +9,13 @@ import java.io.*;
 public class PAM {
   
   
-  public int k = 3;
+  public int k;
   //Input fields
   private BufferedReader file;
   private String[] attributeNames;
   //Computed/resultant fields
   private ArrayList<Data> data = new ArrayList<Data>();
-  private ArrayList<Data> medoids = new ArrayList<Data>();
+  
   
   private ArrayList<PAMCluster> clusters = new ArrayList<PAMCluster>();
   private double manWSS = 0;
@@ -44,7 +44,7 @@ public class PAM {
     calculateEntropy();
   }
   
-  public PAM (String filename, String[] attributeNames) throws IOException {
+  public PAM (String filename, String[] attributeNames, int k) throws IOException {
     try {
       this.file = new BufferedReader(new FileReader(filename));
     }
@@ -52,6 +52,7 @@ public class PAM {
       System.out.println("Can not find file: " + filename);
     }
     this.attributeNames = attributeNames;
+    this.k = k;
     initData();
     kMedoids();
     
@@ -105,12 +106,12 @@ public class PAM {
       current.setWeightedEntropy(value);
       this.weightedEntropy += value;
     }
+    System.out.println("weightedEntropy: " + weightedEntropy);
     this.infoGain = 1 - this.weightedEntropy;
   }           
   
   public void initData() throws IOException {
     String line = this.file.readLine();
-    int count = 0;
     while (line != null) {
       String[] lineVals = line.split(",");
       HashMap<String, Double> attributes = new HashMap<String, Double>();
@@ -147,23 +148,56 @@ public class PAM {
   }
   
   public void kMedoids() {
+    
+    ArrayList<Data> medoids = new ArrayList<Data>();
+    
     //select k points as initial medoids
-    Data medoid = new Data();
     for (int i = 0; i < k; i++) {
+      boolean valid = false;
+      Data medoid = new Data();
+      while (!valid) {
       int randomVal = (int) Math.round(Math.random()*(this.data.size() -1));
       medoid = this.data.get(randomVal);
+      valid = !medoids.contains(medoid);
+      }
+      
       this.clusters.add(new PAMCluster(medoid));
       medoids.add(medoid);
-      data.remove(medoid);
+      //data.remove(medoid);
     }
     
     for (int j = 0; j < medoids.size(); j++) {
       System.out.println("Medoid " + j + " cost before = " + computeCost(medoids.get(j)));
     }
-    bestMedoid();
+    
+
+    ArrayList<Data> newMedoids = new ArrayList<Data>();
+    System.out.println("=================================================================");
+    newMedoids = bestMedoids(medoids);
+    setNewMedoids(newMedoids);
     cluster();
     computeGoodness();
+    System.out.println("InfoGain: " + infoGain);
+    
+    for (int j = 0; j < this.clusters.size(); j++) {
+      clusters.get(j).computeCost();
+      System.out.println("Cost for cluster " + j + " = " + clusters.get(j).getCost());
+    }
+      
   }
+  
+  public void setNewMedoids(ArrayList<Data> medoids) {
+    for (int i = 0; i < medoids.size(); i ++) {
+      for (int j = 0; j < this.clusters.size(); j++) {
+        //Data oldMedoid = this.clusters.get(j).getMedoid();
+        this.clusters.get(j).setMedoid(medoids.get(i));
+      }
+    }
+  }
+    
+                                         
+
+  
 
     public void cluster() {
     System.out.println("Commence clustering");  
@@ -203,20 +237,6 @@ public class PAM {
     return distance;
   }
     
-    //TODO
-    public void swap(Data point, Data otherPoint) {
-      
-      //Swap the two points
-      Data temp = point;
-      point = otherPoint;
-      otherPoint = temp;
-      //Make sure the points are removed and added to their respective ArrayLists
-      /*medoids.remove(point);
-      data.add(point);
-      medoids.add(otherPoint);
-      data.remove(otherPoint);*/
-    }
-    
     public double computeCost(Data medoid) {
       double totalCost = 0;
       for (int i = 0; i < data.size(); i++) {
@@ -229,112 +249,92 @@ public class PAM {
         return totalCost;
     }
     
-    //TODO: something with this method is not working. it is not finding the smallest key value  
-    public Data lowestCost(HashMap<Double, Data> list){
-      double lowest = -9999;
-      Data lowestPoint = new Data();
-      for (Double key : list.keySet()) {
-        if (lowest < key) { 
-          lowest = key; 
-          lowestPoint = list.get(key);
-        }
-      }
-
-      return lowestPoint;
-    }
-            
-    
-    public void bestMedoid() {
-      HashMap<Double, Data> potentialMedoids = new HashMap<Double, Data>();
-      double swapCost = 0;
-      double currentCost;
-      System.out.println(swapCost);
-      int counter = 0;
-      Data bestMedoid = new Data();
+    //TODO: WTF HELP
+    public ArrayList<Data> bestMedoids(ArrayList<Data> medoids) {
+      ArrayList<Data> newMedoids = new ArrayList<Data>();
       for (int i = 0; i < medoids.size(); i++) {
-        currentCost = computeCost(medoids.get(i));     
-        for (int j = 0; j < data.size(); j++) {         
-          //swap(medoids.get(i), data.get(j));
-          medoids.remove(i);
-          medoids.add(i, data.get(j));
-          data.remove(j);
-          data.add(j, medoids.get(i));
+        double currentCost = computeCost(medoids.get(i));
+        System.out.println("Current cost: " + currentCost);
+        int counter = 0;
+        Data bestMedoid = new Data();
+        for (int j = 0; j < data.size(); j++) {
+          double swapCost = 0;
           swapCost = computeCost(data.get(j));
+          //System.out.println("Swap " + swapCost);
+          //if the cost after swapping is less than current cost
           if (swapCost < currentCost && counter < 3) {
+            //the current configuration stays
             currentCost = swapCost;
             counter++;
             bestMedoid = data.get(j);
-            System.out.println(counter);
-            System.out.println(swapCost);
-            //put the list of better costs into a hashmap to be sorted through for the single best cost
-            //potentialMedoids.put(swapCost, data.get(j))
+            System.out.println("Iteration: " + counter + " for medoid " + i);
+            System.out.println("Cost " + swapCost);
+            System.out.println();
           }
-          else if (swapCost >= currentCost && counter < 3) {  }
-          else {break;}
+          
+          else if (counter < 3){
+            continue;
+          }
+          else {
+            newMedoids.add(bestMedoid);
+            data.set(j, medoids.get(i));
+            double bestCost = computeCost(bestMedoid);
+            System.out.println("Best Cost: " + bestCost);
+            //System.out.println("Medoid " + i + " cost after = " + computeCost(medoids.get(i)));
+            System.out.println("=================================================================");
+            System.out.println();
+            break;
+          }
         }
         
-        
-        double bestCost = computeCost(bestMedoid);
-        System.out.println("Best Cost: " + bestCost);
-        medoids.remove(i);
-        medoids.add(i, bestMedoid);
-        data.remove(bestMedoid);
-        data.add(medoids.get(i));
-        //Add and remove the data points from their respective ArrayLists
-        //bestMedoid = lowestCost(potentialMedoids);
       }
-      for (int g = 0; g < medoids.size(); g++) {
-        System.out.println("Medoid " + g + " cost after = " + computeCost(medoids.get(g)));
-      }
+
+      return newMedoids;
+
     }
     
     public static void output(ArrayList<PAM> current, String filename) throws IOException {
-      PrintWriter outFile = new PrintWriter(new FileWriter(filename +  "_results.csv"));
+      PrintWriter outFile = new PrintWriter(new FileWriter(filename +  "_results.txt"));
       //Report cohesion and separation using WSS and BSS
       for(int i = 0; i < current.size(); i++) {
-        String tableColumns = (current.get(i).getEuclidean()) ? "Euclidean," : "Manhattan,";
+        String tableColumns = "Manhattan: ";
         tableColumns += "WSS,BSS,BSS/WSS,InformationGain,WeightedEntropy";
         outFile.println(tableColumns);
-        if(current.get(i).getEuclidean()){     
-          String line = "k = " + current.get(i).getK() + ", " + current.get(i).getEucWSS() + ", " + current.get(i).getEucBSS() + ", " + current.get(i).getEucBSS()/current.get(i).getEucWSS() + ", " 
-            + current.get(i).getEntropy() + ", " + current.get(i).getWeightedEntropy() + ", ";
-          outFile.println(line);
-        }else {     
           String line = "k = " + current.get(i).getK() + ", " + current.get(i).getManWSS() + ", " + current.get(i).getManBSS() + ", " + current.get(i).getManBSS()/current.get(i).getManWSS() + ", " 
             + current.get(i).getEntropy() + ", " + current.get(i).getWeightedEntropy() + ", ";
           outFile.println(line);
-        } 
       }   
       outFile.println(" ");
       
       //Report Entropy per cluster with total weighted entropy
       for(int i = 0; i < current.size(); i++) {
-        String clusterColumns = (current.get(i).getEuclidean()) ? "Euclidean," : "Manhattan,";
+        String clusterColumns = "Manhattan: ";
         clusterColumns += "Entropy, Weighted Entropy";
         outFile.println(clusterColumns);
-        if(current.get(i).getEuclidean()){  
-          for(int j = 0; j< current.get(i).clusters.size(); j++) {
-            String nLine = j + ", " + current.get(i).clusters.get(j).getEntropy() + ", " 
-              + current.get(i).clusters.get(j).getWeightedEntropy();
-            outFile.println(nLine);
-          }
-        }else {
           for(int j = 0; j< current.get(i).clusters.size(); j++) {
             String nLine = j + ", " + current.get(i).clusters.get(j).getEntropy() + ", " 
               + current.get(i).clusters.get(j).getWeightedEntropy();
             outFile.println(nLine);
           }
         }
-      }
       outFile.close();
     }
   
   //java PAM <filename>
   public static void main(String[] args) throws IOException {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};
-    String fileName = "Twitter/Absolute_labeling/Twitter-Absolute-Sigma-500.data";
-    PAM init = new PAM(fileName, initAttNames);
-    
+    String fileName1 = "Twitter/Absolute_labeling/Twitter-Absolute-Sigma-500.data";
+    String fileName2 = "Twitter/Relative_labeling/sigma=500/Twitter-Relative-Sigma-500.data";
+    String fileName3 = "Twitter/Relative_labeling/sigma=1000/Twitter-Relative-Sigma-1000.data";
+    String fileName4 = "Twitter/Relative_labeling/sigma=1500/Twitter-Relative-Sigma-1500.data";
+    PAM clusterPam = new PAM(fileName4, initAttNames, 2);
+    /*PAM clusterPam4 = new PAM(fileName4, initAttNames, 4);
+    PAM clusterPam6 = new PAM(fileName4, initAttNames, 6);
+    ArrayList<PAM> stuff = new ArrayList<PAM>(Arrays.asList(clusterPam, clusterPam4, clusterPam6));
+    for (int i = 0; i < stuff.size(); i ++) {
+     stuff.get(i).computeGoodness();
+    }
+    output(stuff, fileName4);*/
   }
 
 }

@@ -101,14 +101,10 @@ public class Optics {
       double distance = point.distance(data, euclidean);
       if (distance <= this.epsilon) {
         neighbors.add(data);
-        data.setNeighborDistance(distance);
+        data.setReachabilityDistance(distance);
       }
     }
-    Collections.sort(neighbors, new Comparator<OpticsData>() {
-      public int compare(OpticsData data1, OpticsData data2) {
-        return data1.getNeighborDistance().compareTo(data2.getNeighborDistance());
-      }
-    });
+    Collections.sort(neighbors);
     return neighbors;
   }
   
@@ -116,8 +112,8 @@ public class Optics {
     double coreDistance = point.getCoreDistance();
     for (OpticsData neighbor : neighbors) {
       if (!neighbor.processed()) {
-        double reachabilityDistance = Math.max(coreDistance, neighbor.getNeighborDistance());
-        if (neighbor.getReachabilityDistance() == null) {
+        double reachabilityDistance = Math.max(coreDistance, neighbor.getReachabilityDistance());
+        if (!seeds.contains(neighbor)) {
           neighbor.setReachabilityDistance(reachabilityDistance);
           seeds.add(neighbor);
         }
@@ -128,11 +124,7 @@ public class Optics {
         }
       }
     }
-    Collections.sort(seeds, new Comparator<OpticsData>() {
-      public int compare(OpticsData data1, OpticsData data2) {
-        return data1.getReachabilityDistance().compareTo(data2.getReachabilityDistance());
-      }
-    });
+    Collections.sort(seeds);
     return seeds;
   }
   

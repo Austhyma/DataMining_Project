@@ -218,7 +218,7 @@ public class PAM {
     //Adds all points to their nearest cluster
     for (int i = 0; i < this.clusters.size(); i++) {
       
-      ArrayList<PAMData> newStuff = new ArrayList<PAMData>();
+      ArrayList<Data> newStuff = new ArrayList<Data>();
       for (int j = 0; j < this.data.size(); j++) {
         if (this.data.get(j).getClosestMedoid() == i) newStuff.add(this.data.get(j));
       }

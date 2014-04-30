@@ -83,6 +83,7 @@ public class PAM {
         }
       }
     }
+    
     //Calculate distances from dataset centroid
     for (int i = 0; i < clusters.size(); i++) {
       for (int j = 0; j < clusters.get(i).getPoints().size(); j++) {
@@ -101,7 +102,6 @@ public class PAM {
     for (int i = 0; i < clusters.size(); i++) {
       Cluster current = clusters.get(i);
       current.calculateEntropy();
-      System.out.println(current.getEntropy());
       double numClassLabel = current.getPoints().size();
       double value = (numClassLabel/this.data.size()) * current.getEntropy();
       current.setWeightedEntropy(value);
@@ -153,7 +153,7 @@ public class PAM {
     ArrayList<PAMData> medoids = new ArrayList<PAMData>();
     
     //select k points as initial medoids
-    for (int i = 0; i < k; i++) {
+    for (int i = 1; i <= k; i++) {
       boolean valid = false;
       PAMData medoid = new PAMData();
       while (!valid) {
@@ -166,7 +166,8 @@ public class PAM {
       medoids.add(medoid);
       //data.remove(medoid);
     }
-     
+    
+    
     
     for (int j = 0; j < medoids.size(); j++) {
       System.out.println("Medoid " + j + " cost before = " + computeCost(medoids.get(j)));
@@ -176,26 +177,27 @@ public class PAM {
     ArrayList<PAMData> newMedoids = new ArrayList<PAMData>();
     System.out.println("=================================================================");
     newMedoids = bestMedoids(medoids);
-    //setNewMedoids(newMedoids);
+    setNewMedoids(newMedoids);
     cluster();
     computeGoodness();
     System.out.println("InfoGain: " + infoGain);
     
-    /*for (int j = 0; j < this.clusters.size(); j++) {
+    for (int j = 0; j < this.clusters.size(); j++) {
       clusters.get(j).computeCost();
       System.out.println("Cost for cluster " + j + " = " + clusters.get(j).getCost());
-    }*/
+      System.out.println("Entropy for cluster " + j + " = " + clusters.get(j).getEntropy());
+    }
+    
      
       
   }
   
   public void setNewMedoids(ArrayList<PAMData> medoids) {
-    for (int i = 0; i < medoids.size(); i ++) {
-      for (int j = 0; j < this.clusters.size(); j++) {
-        //Data oldMedoid = this.clusters.get(j).getMedoid();
-        this.clusters.get(j).setMedoid(medoids.get(i));
-        break;
-      }
+    for (int i = 0; i < this.clusters.size(); i++) {
+      this.clusters.remove(i);
+    }
+    for (int j = 0; j < medoids.size()-1; j++) {
+      this.clusters.add(new PAMCluster(medoids.get(j)));
     }
   }
     
@@ -231,7 +233,7 @@ public class PAM {
     System.out.println("Clustering complete");
   }
   
-  public double distance(PAMData current, PAMData medoid) {
+  public double distance(Data current, Data medoid) {
     double distance = 0;
     for (Iterator<String> attribute = current.getAttributes().keySet().iterator(); attribute.hasNext();) {
       String currentAttribute = attribute.next();

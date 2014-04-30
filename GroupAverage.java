@@ -42,11 +42,11 @@ public class GroupAverage {
       System.out.println("DataSet Size: "+dataset.size());
       line = file.readLine();
       System.out.println("Line: " + count++);
-      for(int j = 0; j <dataset.size(); j++) {
+    }
+      for(int j = 0; j<=dataset.size(); j++) {
         Cluster2 c =  new Cluster2(dataset.get(j));
         clusters.add(c);
       }
-    }
   }
   
   //take the data and find the lowest distance using the average

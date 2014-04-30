@@ -79,18 +79,22 @@ public class Optics {
       point.process();
       clusterPoints.add(point);
       ArrayList<OpticsData> seeds = new ArrayList<OpticsData>();
-      if (point.coreDistance(neighbors, this.minPoints, this.euclidean) != null) {
-        seeds = update(neighbors, point, seeds);
-        for (OpticsData q : seeds) {
+      if (neighbors.size() >= this.minPoints) {
+        point.coreDistance(neighbors, this.minPoints, this.euclidean);
+        seeds = update(neighbors, point, seeds, clusterPoints);
+        //for (OpticsData q : seeds) {
+        for (int i = 0; i < seeds.size(); i++) {
+          OpticsData q = seeds.get(i);
           ArrayList<OpticsData> qNeighbors = getNeighbors(q);
           q.process();
           clusterPoints.add(q);
-          if (q.coreDistance(qNeighbors, this.minPoints, this.euclidean) != null) {
-            seeds = update(qNeighbors, q, seeds);
+          if (qNeighbors.size() >= this.minPoints) {
+            q.coreDistance(qNeighbors, this.minPoints, this.euclidean);
+            seeds = update(qNeighbors, q, seeds, clusterPoints);
           }
         }
       }
-      System.out.println("Points processed: " + count++);
+      System.out.println("Count: " + count++);
       clusters.add(new Cluster(clusterPoints));
     }
   }
@@ -108,10 +112,10 @@ public class Optics {
     return neighbors;
   }
   
-  public ArrayList<OpticsData> update(ArrayList<OpticsData> neighbors, OpticsData point, ArrayList<OpticsData> seeds) {
+  public ArrayList<OpticsData> update(ArrayList<OpticsData> neighbors, OpticsData point, ArrayList<OpticsData> seeds, ArrayList<Data> clusterPoints) {
     double coreDistance = point.getCoreDistance();
     for (OpticsData neighbor : neighbors) {
-      if (!neighbor.processed()) {
+      if (!clusterPoints.contains(neighbor)) {
         double reachabilityDistance = Math.max(coreDistance, neighbor.getReachabilityDistance());
         if (!seeds.contains(neighbor)) {
           neighbor.setReachabilityDistance(reachabilityDistance);

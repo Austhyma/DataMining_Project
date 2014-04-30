@@ -27,4 +27,12 @@ public class Data {
   
   public boolean getBuzz() {return this.buzz;}
   public HashMap<String, Double> getAttributes() {return this.attributes;}
+  
+  public boolean equals(OpticsData other) {
+      for (String attribute : this.attributes.keySet()) {
+        if (this.attributes.get(attribute) != other.getAttribute(attribute)) return false;
+      }
+      if (this.buzz != other.getBuzz()) return false;
+      return true;
+    }
 }

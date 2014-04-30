@@ -37,27 +37,11 @@ public class OpticsData extends Data implements Comparable<OpticsData> {
   }
   
   //Calculates the core-distance for each point from it's minPointsith neighbor
-  public Double coreDistance(ArrayList<OpticsData> neighbors, int minPoints, boolean euclidean) {
-    Double coreDistance;
-    if (neighbors.size() < minPoints) {
-      return null;
-    }
-    else {
-      coreDistance = distance(neighbors.get(minPoints-1), euclidean);
-      this.coreDistance = coreDistance;
-    }
-    return coreDistance;
+  public void coreDistance(ArrayList<OpticsData> neighbors, int minPoints, boolean euclidean) {
+    this.coreDistance = distance(neighbors.get(minPoints-1), euclidean);
   }
   
   public int compareTo(OpticsData other) {
     return this.reachabilityDistance.compareTo(other.getReachabilityDistance());
-  }
-  
-  public boolean equals(OpticsData other) {
-    for (String attribute : this.attributes.keySet()) {
-      if (this.attributes.get(attribute) != other.getAttribute(attribute)) return false;
-    }
-    if (this.buzz != other.getBuzz()) return false;
-    return true;
   }
 }

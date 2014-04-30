@@ -1,5 +1,6 @@
 import java.util.*;
 
+
 public class PAMCluster extends Cluster {
   private PAMData medoid;
   private Double cost;
@@ -38,6 +39,7 @@ public class PAMCluster extends Cluster {
       }
     }
   }
+  
   public void computeCost(PAMData point) {
     for (int i = 0; i < points.size(); i++) {
       for (Iterator<String> stuff = points.get(i).getAttributes().keySet().iterator() ; stuff.hasNext();) {

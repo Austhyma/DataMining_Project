@@ -101,6 +101,7 @@ public class PAM {
     for (int i = 0; i < clusters.size(); i++) {
       Cluster current = clusters.get(i);
       current.calculateEntropy();
+      System.out.println(current.getEntropy());
       double numClassLabel = current.getPoints().size();
       double value = (numClassLabel/this.data.size()) * current.getEntropy();
       current.setWeightedEntropy(value);
@@ -165,6 +166,7 @@ public class PAM {
       medoids.add(medoid);
       //data.remove(medoid);
     }
+     
     
     for (int j = 0; j < medoids.size(); j++) {
       System.out.println("Medoid " + j + " cost before = " + computeCost(medoids.get(j)));
@@ -174,16 +176,16 @@ public class PAM {
     ArrayList<PAMData> newMedoids = new ArrayList<PAMData>();
     System.out.println("=================================================================");
     newMedoids = bestMedoids(medoids);
-    setNewMedoids(newMedoids);
+    //setNewMedoids(newMedoids);
     cluster();
     computeGoodness();
     System.out.println("InfoGain: " + infoGain);
     
-    
-     for (int j = 0; j < this.clusters.size(); j++) {
+    /*for (int j = 0; j < this.clusters.size(); j++) {
       clusters.get(j).computeCost();
       System.out.println("Cost for cluster " + j + " = " + clusters.get(j).getCost());
-    }
+    }*/
+     
       
   }
   
@@ -192,6 +194,7 @@ public class PAM {
       for (int j = 0; j < this.clusters.size(); j++) {
         //Data oldMedoid = this.clusters.get(j).getMedoid();
         this.clusters.get(j).setMedoid(medoids.get(i));
+        break;
       }
     }
   }
@@ -328,6 +331,7 @@ public class PAM {
     String fileName2 = "Twitter/Relative_labeling/sigma=500/Twitter-Relative-Sigma-500.data";
     String fileName3 = "Twitter/Relative_labeling/sigma=1000/Twitter-Relative-Sigma-1000.data";
     String fileName4 = "Twitter/Relative_labeling/sigma=1500/Twitter-Relative-Sigma-1500.data";
+    
     PAM clusterPam = new PAM(fileName4, initAttNames, 2);
     /*PAM clusterPam4 = new PAM(fileName4, initAttNames, 4);
     PAM clusterPam6 = new PAM(fileName4, initAttNames, 6);

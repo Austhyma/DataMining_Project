@@ -179,7 +179,8 @@ public class PAM {
     computeGoodness();
     System.out.println("InfoGain: " + infoGain);
     
-    for (int j = 0; j < this.clusters.size(); j++) {
+    
+     for (int j = 0; j < this.clusters.size(); j++) {
       clusters.get(j).computeCost();
       System.out.println("Cost for cluster " + j + " = " + clusters.get(j).getCost());
     }

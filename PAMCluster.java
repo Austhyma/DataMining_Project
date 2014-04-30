@@ -3,7 +3,7 @@ import java.util.*;
 
 public class PAMCluster extends Cluster {
   private PAMData medoid;
-  private Double cost;
+  private double cost;
   
   public PAMCluster(PAMData medoid) {
     super();
@@ -44,7 +44,7 @@ public class PAMCluster extends Cluster {
     for (int i = 0; i < points.size(); i++) {
       for (Iterator<String> stuff = points.get(i).getAttributes().keySet().iterator() ; stuff.hasNext();) {
         String current = stuff.next();
-        cost += Math.abs(point.getAttribute(current) - points.get(i).getAttribute(current));
+        this.cost += Math.abs(point.getAttribute(current) - points.get(i).getAttribute(current));
       }
     }
   }

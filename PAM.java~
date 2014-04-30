@@ -14,7 +14,7 @@ public class PAM {
   private BufferedReader file;
   private String[] attributeNames;
   //Computed/resultant fields
-  private ArrayList<Data> data = new ArrayList<Data>();
+  private ArrayList<PAMData> data = new ArrayList<PAMData>();
   
   
   private ArrayList<PAMCluster> clusters = new ArrayList<PAMCluster>();
@@ -123,7 +123,7 @@ public class PAM {
         attributes.put(this.attributeNames[i], values.get(values.size()/2));
       }
       double buzzVal = Double.parseDouble(lineVals[lineVals.length - 1]);
-      this.data.add(new Data(attributes, (buzzVal == 1.0)));
+      this.data.add(new PAMData(attributes, (buzzVal == 1.0)));
       line = file.readLine();
       //System.out.println("Line: " + count++);
     }
@@ -149,12 +149,12 @@ public class PAM {
   
   public void kMedoids() {
     
-    ArrayList<Data> medoids = new ArrayList<Data>();
+    ArrayList<PAMData> medoids = new ArrayList<PAMData>();
     
     //select k points as initial medoids
     for (int i = 0; i < k; i++) {
       boolean valid = false;
-      Data medoid = new Data();
+      PAMData medoid = new PAMData();
       while (!valid) {
       int randomVal = (int) Math.round(Math.random()*(this.data.size() -1));
       medoid = this.data.get(randomVal);
@@ -171,7 +171,7 @@ public class PAM {
     }
     
 
-    ArrayList<Data> newMedoids = new ArrayList<Data>();
+    ArrayList<PAMData> newMedoids = new ArrayList<PAMData>();
     System.out.println("=================================================================");
     newMedoids = bestMedoids(medoids);
     setNewMedoids(newMedoids);
@@ -186,7 +186,7 @@ public class PAM {
       
   }
   
-  public void setNewMedoids(ArrayList<Data> medoids) {
+  public void setNewMedoids(ArrayList<PAMData> medoids) {
     for (int i = 0; i < medoids.size(); i ++) {
       for (int j = 0; j < this.clusters.size(); j++) {
         //Data oldMedoid = this.clusters.get(j).getMedoid();
@@ -227,7 +227,7 @@ public class PAM {
     System.out.println("Clustering complete");
   }
   
-  public double distance(Data current, Data medoid) {
+  public double distance(PAMData current, PAMData medoid) {
     double distance = 0;
     for (Iterator<String> attribute = current.getAttributes().keySet().iterator(); attribute.hasNext();) {
       String currentAttribute = attribute.next();
@@ -237,7 +237,7 @@ public class PAM {
     return distance;
   }
     
-    public double computeCost(Data medoid) {
+    public double computeCost(PAMData medoid) {
       double totalCost = 0;
       for (int i = 0; i < data.size(); i++) {
         for (Iterator<String> stuff = data.get(i).getAttributes().keySet().iterator() ; stuff.hasNext();) {
@@ -250,13 +250,13 @@ public class PAM {
     }
     
     //TODO: WTF HELP
-    public ArrayList<Data> bestMedoids(ArrayList<Data> medoids) {
-      ArrayList<Data> newMedoids = new ArrayList<Data>();
+    public ArrayList<PAMData> bestMedoids(ArrayList<PAMData> medoids) {
+      ArrayList<PAMData> newMedoids = new ArrayList<PAMData>();
       for (int i = 0; i < medoids.size(); i++) {
         double currentCost = computeCost(medoids.get(i));
         System.out.println("Current cost: " + currentCost);
         int counter = 0;
-        Data bestMedoid = new Data();
+        PAMData bestMedoid = new PAMData();
         for (int j = 0; j < data.size(); j++) {
           double swapCost = 0;
           swapCost = computeCost(data.get(j));

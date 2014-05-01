@@ -15,7 +15,7 @@ public class PAM {
   private String[] attributeNames;
   //Computed/resultant fields
   private ArrayList<PAMData> data = new ArrayList<PAMData>();
-  
+  private ArrayList<PAMData> medoids = new ArrayList<PAMData>();
   
   private ArrayList<PAMCluster> clusters = new ArrayList<PAMCluster>();
   private double manWSS = 0;
@@ -150,7 +150,7 @@ public class PAM {
   
   public void kMedoids() {
     
-    ArrayList<PAMData> medoids = new ArrayList<PAMData>();
+    
     
     //select k points as initial medoids
     for (int i = 0; i < k; i++) {
@@ -176,9 +176,9 @@ public class PAM {
 
     ArrayList<PAMData> newMedoids = new ArrayList<PAMData>();
     System.out.println("=================================================================");
-    newMedoids = bestMedoids(medoids);
+    //newMedoids = bestMedoids(medoids);
     setNewMedoids(newMedoids);
-    cluster();
+    //cluster();
     computeGoodness();
 
   
@@ -248,13 +248,38 @@ public class PAM {
         return totalCost;
     }
     
-    //TODO: WTF HELP
-    public ArrayList<PAMData> bestMedoids(ArrayList<PAMData> medoids) {
+    public boolean belongsTo(PAMData point, ArrayList<PAMData> cluster) {
+      if (clusters.contains(point)) {
+        return true;
+      }
+      return false;
+    }
+    
+    //TODO: HELP
+    public void bestMedoids() {
       System.out.println(data.size());
       //initialize new arraylist to put the new medoids in
-      ArrayList<PAMData> newMedoids = new ArrayList<PAMData>();
-      for (int i = 0; i < medoids.size(); i++) {
-        double currentCost = computeCost(medoids.get(i));
+      //ArrayList<PAMData> newMedoids = new ArrayList<PAMData>();
+      for (int i = 0; i < this.medoids.size(); i++) {
+        cluster();
+        double cost = 0;
+        for (int j = 0; j < this.data.size(); j++) {
+        }
+      }
+    }
+       
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        /*double currentCost = computeCost(medoids.get(i));
         System.out.println("Current cost: " + currentCost);
         int counter = 0;
         PAMData bestMedoid = new PAMData();
@@ -292,7 +317,7 @@ public class PAM {
       System.out.println(data.size());
       return newMedoids;
       
-    }
+    }*/
     
     
     public static void output(ArrayList<PAM> current, String filename) throws IOException {

@@ -14,6 +14,7 @@ public class PAMData extends Data {
     super(attributes, buzz);
   }
   
+  
   public void setClosestMedoid(int closestMedoid) {this.closestMedoid = closestMedoid;}
   public int getClosestMedoid() {return this.closestMedoid;}
 }

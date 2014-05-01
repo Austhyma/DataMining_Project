@@ -107,8 +107,8 @@ public class PAM {
       current.setWeightedEntropy(value);
       this.weightedEntropy += value;
     }
-    System.out.println("weightedEntropy: " + weightedEntropy);
     this.infoGain = 1 - this.weightedEntropy;
+    System.out.println("InfoGain: " + this.infoGain);
   }           
   
   public void initData() throws IOException {
@@ -153,11 +153,11 @@ public class PAM {
     ArrayList<PAMData> medoids = new ArrayList<PAMData>();
     
     //select k points as initial medoids
-    for (int i = 1; i <= k; i++) {
+    for (int i = 0; i < k; i++) {
       boolean valid = false;
       PAMData medoid = new PAMData();
       while (!valid) {
-      int randomVal = (int) Math.round(Math.random()*(this.data.size() -1));
+      int randomVal = (int) Math.round(Math.random()*(this.data.size() - 1));
       medoid = this.data.get(randomVal);
       valid = !medoids.contains(medoid);
       }
@@ -179,14 +179,14 @@ public class PAM {
     newMedoids = bestMedoids(medoids);
     setNewMedoids(newMedoids);
     cluster();
-    computeGoodness();
-    System.out.println("InfoGain: " + infoGain);
     
     for (int j = 0; j < this.clusters.size(); j++) {
       clusters.get(j).computeCost();
       System.out.println("Cost for cluster " + j + " = " + clusters.get(j).getCost());
       System.out.println("Entropy for cluster " + j + " = " + clusters.get(j).getEntropy());
     }
+    
+    
     
      
       
@@ -263,7 +263,7 @@ public class PAM {
         System.out.println("Current cost: " + currentCost);
         int counter = 0;
         PAMData bestMedoid = new PAMData();
-        for (int j = 0; j < data.size(); j++) {
+        for (int j = 0; j < data.size()-k; j++) {
           double swapCost = 0;
           swapCost = computeCost(data.get(j));
           //System.out.println("Swap " + swapCost);
@@ -278,7 +278,7 @@ public class PAM {
             System.out.println();
           }
           
-          else if (counter < 3){
+          else if (swapCost > currentCost){
             continue;
           }
           else {
@@ -300,7 +300,7 @@ public class PAM {
     }
     
     public static void output(ArrayList<PAM> current, String filename) throws IOException {
-      PrintWriter outFile = new PrintWriter(new FileWriter(filename +  "_results.txt"));
+      PrintWriter outFile = new PrintWriter(new FileWriter(filename +  "_results.csv"));
       //Report cohesion and separation using WSS and BSS
       for(int i = 0; i < current.size(); i++) {
         String tableColumns = "Manhattan: ";
@@ -334,14 +334,15 @@ public class PAM {
     String fileName3 = "Twitter/Relative_labeling/sigma=1000/Twitter-Relative-Sigma-1000.data";
     String fileName4 = "Twitter/Relative_labeling/sigma=1500/Twitter-Relative-Sigma-1500.data";
     
-    PAM clusterPam = new PAM(fileName4, initAttNames, 2);
-    /*PAM clusterPam4 = new PAM(fileName4, initAttNames, 4);
-    PAM clusterPam6 = new PAM(fileName4, initAttNames, 6);
-    ArrayList<PAM> stuff = new ArrayList<PAM>(Arrays.asList(clusterPam, clusterPam4, clusterPam6));
+    PAM clusterPam = new PAM(fileName4, initAttNames, 3);
+    //PAM clusterPam4 = new PAM(fileName4, initAttNames, 4);
+    //PAM clusterPam6 = new PAM(fileName4, initAttNames, 6);
+    ArrayList<PAM> stuff = new ArrayList<PAM>(Arrays.asList(clusterPam));
     for (int i = 0; i < stuff.size(); i ++) {
-     stuff.get(i).computeGoodness();
+      stuff.get(i).computeGoodness();
     }
-    output(stuff, fileName4);*/
+    
+    output(stuff, fileName4);
   }
 
 }

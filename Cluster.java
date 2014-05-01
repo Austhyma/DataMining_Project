@@ -71,8 +71,8 @@ public class Cluster {
   public void calculateEntropy() {
     double buzzProb = classCount(true)/(double) points.size();
     double nonBuzzProb = classCount(false)/(double) points.size();
-    this.entropy += (buzzProb == 0) ? 0 : entropy(buzzProb);
-    this.entropy += (nonBuzzProb == 0) ? 0 : entropy(nonBuzzProb);
+    this.entropy -= (buzzProb == 0) ? 0 : entropy(buzzProb);
+    this.entropy -= (nonBuzzProb == 0) ? 0 : entropy(nonBuzzProb);
   }
   
   public double entropy(double probability) {

@@ -179,16 +179,9 @@ public class PAM {
     newMedoids = bestMedoids(medoids);
     setNewMedoids(newMedoids);
     cluster();
-    
-    for (int j = 0; j < this.clusters.size(); j++) {
-      clusters.get(j).computeCost();
-      System.out.println("Cost for cluster " + j + " = " + clusters.get(j).getCost());
-      System.out.println("Entropy for cluster " + j + " = " + clusters.get(j).getEntropy());
-    }
-    
-    
-    
-     
+    computeGoodness();
+
+  
       
   }
   
@@ -196,7 +189,7 @@ public class PAM {
     for (int i = 0; i < this.clusters.size(); i++) {
       this.clusters.remove(i);
     }
-    for (int j = 0; j < medoids.size()-1; j++) {
+    for (int j = 0; j < medoids.size(); j++) {
       this.clusters.add(new PAMCluster(medoids.get(j)));
     }
   }
@@ -257,6 +250,8 @@ public class PAM {
     
     //TODO: WTF HELP
     public ArrayList<PAMData> bestMedoids(ArrayList<PAMData> medoids) {
+      System.out.println(data.size());
+      //initialize new arraylist to put the new medoids in
       ArrayList<PAMData> newMedoids = new ArrayList<PAMData>();
       for (int i = 0; i < medoids.size(); i++) {
         double currentCost = computeCost(medoids.get(i));
@@ -283,7 +278,8 @@ public class PAM {
           }
           else {
             newMedoids.add(bestMedoid);
-            data.set(j, medoids.get(i));
+            data.remove(data.get(j));
+            data.add(medoids.get(i));
             double bestCost = computeCost(bestMedoid);
             System.out.println("Best Cost: " + bestCost);
             //System.out.println("Medoid " + i + " cost after = " + computeCost(medoids.get(i)));
@@ -292,39 +288,58 @@ public class PAM {
             break;
           }
         }
-        
       }
-
+      System.out.println(data.size());
       return newMedoids;
-
+      
     }
     
+    
     public static void output(ArrayList<PAM> current, String filename) throws IOException {
-      PrintWriter outFile = new PrintWriter(new FileWriter(filename +  "_results.csv"));
-      //Report cohesion and separation using WSS and BSS
-      for(int i = 0; i < current.size(); i++) {
-        String tableColumns = "Manhattan: ";
-        tableColumns += "WSS,BSS,BSS/WSS,InformationGain,WeightedEntropy";
-        outFile.println(tableColumns);
-          String line = "k = " + current.get(i).getK() + ", " + current.get(i).getManWSS() + ", " + current.get(i).getManBSS() + ", " + current.get(i).getManBSS()/current.get(i).getManWSS() + ", " 
-            + current.get(i).getEntropy() + ", " + current.get(i).getWeightedEntropy() + ", ";
-          outFile.println(line);
-      }   
-      outFile.println(" ");
-      
-      //Report Entropy per cluster with total weighted entropy
-      for(int i = 0; i < current.size(); i++) {
-        String clusterColumns = "Manhattan: ";
-        clusterColumns += "Entropy, Weighted Entropy";
-        outFile.println(clusterColumns);
-          for(int j = 0; j< current.get(i).clusters.size(); j++) {
-            String nLine = j + ", " + current.get(i).clusters.get(j).getEntropy() + ", " 
-              + current.get(i).clusters.get(j).getWeightedEntropy();
-            outFile.println(nLine);
-          }
+    PrintWriter outFile = new PrintWriter(new FileWriter(filename +  "_results.csv"));
+    //Report cohesion and separation using WSS and BSS
+    for(int i = 0; i < current.size(); i++) {
+      String tableColumns = (current.get(i).getEuclidean()) ? "Euclidean," : "Manhattan,";
+      tableColumns += "WSS,BSS,BSS/WSS,InformationGain,WeightedEntropy";
+      outFile.println(tableColumns);
+      if(current.get(i).getEuclidean()){     
+        String line = "k = " + current.get(i).getK() + ", " + current.get(i).getEucWSS() + ", " + current.get(i).getEucBSS() + ", " + current.get(i).getEucBSS()/current.get(i).getEucWSS() + ", " 
+          + current.get(i).getEntropy() + ", " + current.get(i).getWeightedEntropy() + ", ";
+        outFile.println(line);
+      }else {     
+        String line = "k = " + current.get(i).getK() + ", " + current.get(i).getManWSS() + ", " + current.get(i).getManBSS() + ", " + current.get(i).getManBSS()/current.get(i).getManWSS() + ", " 
+          + current.get(i).getEntropy() + ", " + current.get(i).getWeightedEntropy() + ", ";
+        outFile.println(line);
+      } 
+    }   
+    outFile.println(" ");
+    
+    //Report Entropy per cluster with total weighted entropy
+    for(int i = 0; i < current.size(); i++) {
+      String clusterColumns = (current.get(i).getEuclidean()) ? "Euclidean," : "Manhattan,";
+      clusterColumns += "Entropy, Weighted Entropy";
+      outFile.println(clusterColumns);
+      if(current.get(i).getEuclidean()){  
+        for(int j = 0; j< current.get(i).clusters.size(); j++) {
+          String nLine = j + ", " + current.get(i).clusters.get(j).getEntropy() + ", " 
+            + current.get(i).clusters.get(j).getWeightedEntropy();
+          outFile.println(nLine);
         }
-      outFile.close();
+      }else {
+        for(int j = 0; j< current.get(i).clusters.size(); j++) {
+          String nLine = j + ", " + current.get(i).clusters.get(j).getEntropy() + ", " 
+            + current.get(i).clusters.get(j).getWeightedEntropy();
+          outFile.println(nLine);
+        }
+      }
     }
+    outFile.close();
+  }
+    
+    
+    
+    
+    
   
   //java PAM <filename>
   public static void main(String[] args) throws IOException {
@@ -337,12 +352,12 @@ public class PAM {
     PAM clusterPam = new PAM(fileName4, initAttNames, 3);
     //PAM clusterPam4 = new PAM(fileName4, initAttNames, 4);
     //PAM clusterPam6 = new PAM(fileName4, initAttNames, 6);
-    ArrayList<PAM> stuff = new ArrayList<PAM>(Arrays.asList(clusterPam));
+    /*ArrayList<PAM> stuff = new ArrayList<PAM>(Arrays.asList(clusterPam));
     for (int i = 0; i < stuff.size(); i ++) {
       stuff.get(i).computeGoodness();
     }
     
-    output(stuff, fileName4);
+    output(stuff, fileName4);*/
   }
 
 }

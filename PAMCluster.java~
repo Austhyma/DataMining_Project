@@ -2,10 +2,10 @@ import java.util.*;
 
 
 public class PAMCluster extends Cluster {
-  private PAMData medoid;
-  private double cost;
+  protected Data medoid;
+  protected double cost;
   
-  public PAMCluster(PAMData medoid) {
+  public PAMCluster(Data medoid) {
     super();
     this.medoid = medoid;
   }
@@ -14,8 +14,8 @@ public class PAMCluster extends Cluster {
     super();
   }
   
-  public PAMData getMedoid() {return this.medoid;}
-  public void setMedoid(PAMData medoid) { this.medoid = medoid;}
+  public Data getMedoid() {return this.medoid;}
+  public void setMedoid(Data medoid) { this.medoid = medoid;}
   public double getCost() {return this.cost;}
   public void setCost(double cost) {this.cost = cost;}
 
@@ -40,7 +40,7 @@ public class PAMCluster extends Cluster {
     }
   }
   
-  public void computeCost(PAMData point) {
+  public void computeCost(Data point) {
     for (int i = 0; i < points.size(); i++) {
       for (Iterator<String> stuff = points.get(i).getAttributes().keySet().iterator() ; stuff.hasNext();) {
         String current = stuff.next();

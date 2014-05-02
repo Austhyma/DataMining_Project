@@ -258,7 +258,14 @@ public class PAM {
       return null;
     }
 
-    
+    public boolean closerMedoid(PAMData point, PAMData anotherPoint) {
+      for (int i = 0; i < this.medoids.size(); i++) {
+        if ( distance(point, medoids.get(i)) < distance(point, anotherPoint) ) {
+          return true;
+        }
+      }
+      return false;
+    }
     
                                          
       
@@ -274,8 +281,6 @@ public class PAM {
       PAMData currentMedoid = new PAMData();
       PAMData currentPoint = new PAMData();
       ArrayList<Data> currentCluster = new ArrayList<Data>();
-      //initialize new arraylist to put the new medoids in
-      //ArrayList<PAMData> newMedoids = new ArrayList<PAMData>();
       for (int i = 0; i < this.medoids.size(); i++) {
         cluster();
         double totalCost = 0;
@@ -286,24 +291,25 @@ public class PAM {
           for (int k = 0; k < this.data.size()-1; k++) {
             currentPoint = data.get(k); //j
             currentCluster = getCluster(currentPoint);
-            if  (currentCluster.contains(currentMedoid) && distance(currentPoint, swapPoint) >= distance(currentMedoid, currentPoint)) {
+            //case 1
+            if  (currentCluster.contains(currentMedoid) && closerMedoid(currentPoint, swapPoint) == true) {
               totalCost += (distance(currentPoint, swapPoint) - distance(currentPoint, currentMedoid));
               System.out.println(totalCost);
             }
-            //else if (currentCluster.contains(currentMedoid) &&
-              //and its closer the medoid)
+            //case 2
+            else if (currentCluster.contains(currentMedoid) && closerMedoid(currentPoint, swapPoint) == false) {
               totalCost += (distance(currentPoint, swapPoint) - distance(currentPoint, currentMedoid));
-              //}
-              //else if (currentPoint belongs to another cluster and its closer to its own medoid)
-              totalCost += 0;
-              
-              //else if (currentPoint belongs to another cluster but its closer to...
-              totalCost += ( distance(data.get(j), swapPoint) - distance(data.get(j), data.get(j+1)) );
-              
             }
+            else if (!currentCluster.contains(currentMedoid))
+              totalCost += 0;
+            
+            //else if (currentPoint belongs to another cluster but its closer to...
+            totalCost += ( distance(data.get(j), swapPoint) - distance(data.get(j), data.get(j+1)) );
+            
           }
         }
       }
+    }
     
        
         

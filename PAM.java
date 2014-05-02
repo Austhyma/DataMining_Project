@@ -256,6 +256,7 @@ public class PAM {
           return clusters.get(i).getPoints();
         }
       }
+      return null;
     }
 
     
@@ -278,7 +279,7 @@ public class PAM {
         cluster();
         double totalCost = 0;
         currentMedoid = medoids.get(i);
-        for (int j = 0; j < this.data.size(); j++) {
+        for (int j = 0; j < this.data.size()-1; j++) {
           swapPoint = data.get(j);
           //swap(swapPoint);
           //if (currentPoint belongs to the cluster represented by currentMedoid 

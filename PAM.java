@@ -251,7 +251,6 @@ public class PAM {
     
     public ArrayList<Data> getCluster(PAMData point) {
       for (int i = 0; i < this.clusters.size(); i++) {
-        
         if (clusters.get(i).contains(point)) {
           return clusters.get(i).getPoints();
         }
@@ -273,32 +272,38 @@ public class PAM {
       System.out.println(data.size());
       PAMData swapPoint = new PAMData();
       PAMData currentMedoid = new PAMData();
+      PAMData currentPoint = new PAMData();
+      ArrayList<Data> currentCluster = new ArrayList<Data>();
       //initialize new arraylist to put the new medoids in
       //ArrayList<PAMData> newMedoids = new ArrayList<PAMData>();
       for (int i = 0; i < this.medoids.size(); i++) {
         cluster();
         double totalCost = 0;
-        currentMedoid = medoids.get(i);
+        currentMedoid = medoids.get(i); //i
         for (int j = 0; j < this.data.size()-1; j++) {
-          swapPoint = data.get(j);
-          //swap(swapPoint);
-          //if (currentPoint belongs to the cluster represented by currentMedoid 
-          //and its closer to the swapPoint) {
-            totalCost += ( distance(data.get(j), data.get(j+1)) - distance(data.get(j), currentMedoid) );
-        //}
-            //else if (currentPoint belongs to the cluster represented by currentMedoid
-                       //and its closer the medoid)
-            totalCost += ( distance(data.get(j), swapPoint) - distance(data.get(j), currentMedoid) );
-        //}
-            //else if (currentPoint belongs to another cluster and its closer to its own medoid)
-            totalCost += 0;
-            
-            //else if (currentPoint belongs to another cluster but its closer to...
-            totalCost += ( distance(data.get(j), swapPoint) - distance(data.get(j), data.get(j+1)) );
-                        
+          swapPoint = data.get(j); //h
+          data.remove(swapPoint);
+          for (int k = 0; k < this.data.size()-1; k++) {
+            currentPoint = data.get(k); //j
+            currentCluster = getCluster(currentPoint);
+            if  (currentCluster.contains(currentMedoid) && distance(currentPoint, swapPoint) >= distance(currentMedoid, currentPoint)) {
+              totalCost += (distance(currentPoint, swapPoint) - distance(currentPoint, currentMedoid));
+              System.out.println(totalCost);
+            }
+            //else if (currentCluster.contains(currentMedoid) &&
+              //and its closer the medoid)
+              totalCost += (distance(currentPoint, swapPoint) - distance(currentPoint, currentMedoid));
+              //}
+              //else if (currentPoint belongs to another cluster and its closer to its own medoid)
+              totalCost += 0;
+              
+              //else if (currentPoint belongs to another cluster but its closer to...
+              totalCost += ( distance(data.get(j), swapPoint) - distance(data.get(j), data.get(j+1)) );
+              
+            }
+          }
         }
       }
-    }
     
        
         

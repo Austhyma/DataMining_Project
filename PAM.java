@@ -14,8 +14,8 @@ public class PAM {
   private BufferedReader file;
   private String[] attributeNames;
   //Computed/resultant fields
-  private ArrayList<Data> data = new ArrayList<Data>();
-  private ArrayList<Data> medoids = new ArrayList<Data>();
+  private ArrayList<PAMData> data = new ArrayList<PAMData>();
+  private ArrayList<PAMData> medoids = new ArrayList<PAMData>();
   
   private ArrayList<PAMCluster> clusters = new ArrayList<PAMCluster>();
   private double manWSS = 0;
@@ -151,11 +151,11 @@ public class PAM {
   public void kMedoids() {
     
     
-    
+    long startTime = System.currentTimeMillis();
     //select k points as initial medoids
     for (int i = 0; i < k; i++) {
       boolean valid = false;
-      Data medoid = new Data();
+      PAMData medoid = new PAMData();
       while (!valid) {
       int randomVal = (int) Math.round(Math.random()*(this.data.size() - 1));
       medoid = this.data.get(randomVal);
@@ -167,15 +167,14 @@ public class PAM {
       //data.remove(medoid);
     }
     
-
-    ArrayList<PAMData> newMedoids = new ArrayList<PAMData>();
     System.out.println("=================================================================");
     cluster();
     bestMedoids();
     //setNewMedoids(newMedoids);
-
-    computeGoodness();
-
+    //computeGoodness();
+    long stopTime = System.currentTimeMillis();
+    long elapsedTime = stopTime - startTime;
+    System.out.println("Elapsed Time: " + elapsedTime/60000 + " minutes and " + (elapsedTime%60000)/1000 + " seconds");
     
 
 
@@ -196,8 +195,7 @@ public class PAM {
 
   
 
-    public void cluster() {
-    System.out.println("Commence clustering");  
+    public void cluster() { 
     //Associates points with nearest medoid
     for (int i = 0; i < this.data.size(); i++) {
       int closestMedoid = 0;
@@ -211,7 +209,6 @@ public class PAM {
       }
       this.data.get(i).setClosestMedoid(closestMedoid);
     }
-    System.out.println("Associated points to each cluster, now forming the clusters");
     //Adds all points to their nearest cluster
     for (int i = 0; i < this.clusters.size(); i++) {
       
@@ -221,7 +218,6 @@ public class PAM {
       }
       this.clusters.get(i).setPoints(newStuff);
     }
-    System.out.println("Clustering complete");
   }
   
   public double distance(Data current, Data medoid) {
@@ -265,7 +261,7 @@ public class PAM {
       return false;
     }
     
-    public Data closestMedoid(Data point) {
+    public PAMData closestMedoid(PAMData point) {
       double distance = 0;
       double lowest = Double.POSITIVE_INFINITY;
       for (int i = 0; i < this.medoids.size(); i++) {
@@ -282,48 +278,36 @@ public class PAM {
       }
       return null;
     }
-          
-     
     
-                                         
-      
-      
-      
     
     //TODO: questions:
     // Go through data twice to take our the swap Point then go through all the other points?
     //
     public void bestMedoids() {
-      Data swapPoint = new Data();
-      Data currentMedoid = new Data();
-      Data currentPoint = new Data();
-      Data nextClosestMedoid = new Data();
+      PAMData swapPoint = new PAMData();
+      PAMData currentMedoid = new PAMData();
+      PAMData currentPoint = new PAMData();
+      PAMData nextClosestMedoid = new PAMData();
+      PAMData bestMedoid = new PAMData();
       ArrayList<Data> currentCluster = new ArrayList<Data>();
-      int counter = 0;
+      PriorityQueue<PAMData> lowCosts = new PriorityQueue<PAMData>();
+      
+      double reduction = .01;
       for (int i = 0; i < this.medoids.size(); i++) {
-        
         currentMedoid = medoids.get(i); //i
         medoids.remove(currentMedoid);
-        if (counter == 5) {
-          break;
-        }
-        for (int j = 0; j < this.data.size()-1; j++) {
+        System.out.println("Next Medoid");
+        int iterations = 0;
+        for (int j = 0; j < (this.data.size()-1) * reduction; j++) {
+          if (iterations == 15) {break;}
           swapPoint = data.get(j); //h
           data.remove(swapPoint);
-          counter++;
           double totalCost = 0;
-          if (counter == 5) {
-            break;
-          }
-          for (int k = 0; k < this.data.size()-1; k++) {
+          for (int k = 0; k < (this.data.size()-1) * reduction; k++) {
             currentPoint = data.get(k); //j
             currentCluster = getCluster(currentPoint);
             nextClosestMedoid = closestMedoid(currentPoint); //j2
             //case 1
-            if (counter == 5) {
-              break;
-            }
-            else {
               if  (currentCluster.contains(currentMedoid) && closerMedoid(currentPoint, swapPoint)) {
                 totalCost += (distance(currentPoint, nextClosestMedoid) - distance(currentPoint, currentMedoid));
                 //System.out.println("case 1");
@@ -344,23 +328,43 @@ public class PAM {
                 //System.out.println(
                 //System.out.println("case 4");
               }
-            }
           }
           
           //TODO: IT'S NOT REMOVING THE CLUSTER
           
-          System.out.println(totalCost);
+          //System.out.println(totalCost);
           if (totalCost < 0) {
-            data.add(currentMedoid);
-            data.remove(swapPoint);
-            clusters.add(new PAMCluster(swapPoint));
-            medoids.add(swapPoint);
-            clusters.remove(currentCluster);      
-            System.out.println(clusters.size());
-            cluster();
+            
+            //data.add(currentMedoid);
+            data.add(swapPoint);
+            swapPoint.setCost(totalCost);
+            
+            lowCosts.add(swapPoint);         //add the data point with the low cost to the priority queue of low costs
+            //cluster();
           }
+          else {
+            data.add(swapPoint);
+          }
+          iterations++;
         }
+        
+      
+        
+        bestMedoid = lowCosts.poll();     //retrieve the point with the lowest cost out of all the low costs
+        this.clusters.add(new PAMCluster(bestMedoid));
+        removeCluster(currentMedoid);
+        medoids.add(bestMedoid);
+        cluster();
+        System.out.println("Num clusters = " + this.clusters.size());
       } 
+    }
+    
+    public void removeCluster(PAMData medoid) {
+      for (int i = 0; i < this.clusters.size(); i++) {
+        if (clusters.get(i).getMedoid() == medoid) {
+          clusters.remove(clusters.get(i));
+        }
+      }
     }
     
    
@@ -461,15 +465,15 @@ public class PAM {
     String fileName4 = "Twitter/Relative_labeling/sigma=1500/Twitter-Relative-Sigma-1500.data";
     String fileName5 = "Twitter/test1000samples.data.txt";
     
-    PAM clusterPam = new PAM(fileName4, initAttNames, 3);
-    //PAM clusterPam4 = new PAM(fileName4, initAttNames, 4);
-    //PAM clusterPam6 = new PAM(fileName4, initAttNames, 6);
-    //ArrayList<PAM> stuff = new ArrayList<PAM>(Arrays.asList(clusterPam));
-    //for (int i = 0; i < stuff.size(); i ++) {
-      //stuff.get(i).computeGoodness();
-    //}
+    PAM clusterPam2 = new PAM(fileName1, initAttNames, 2);
+    PAM clusterPam4 = new PAM(fileName1, initAttNames, 4);
+    //PAM clusterPam6 = new PAM(fileName1, initAttNames, 6);
+    ArrayList<PAM> stuff = new ArrayList<PAM>(Arrays.asList(clusterPam2, clusterPam4));
+    for (int i = 0; i < stuff.size(); i ++) {
+      stuff.get(i).computeGoodness();
+    }
     
-    //output(stuff, fileName4);
+    output(stuff, fileName1);
   }
 
 }

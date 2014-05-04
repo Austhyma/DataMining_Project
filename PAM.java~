@@ -176,11 +176,12 @@ public class PAM {
 
     ArrayList<PAMData> newMedoids = new ArrayList<PAMData>();
     System.out.println("=================================================================");
-    //newMedoids = bestMedoids(medoids);
+    cluster();
     bestMedoids();
-    setNewMedoids(newMedoids);
-    //cluster();
+    //setNewMedoids(newMedoids);
+
     computeGoodness();
+    System.out.println("INFO GAIN: " + this.infoGain);
 
   
       
@@ -258,14 +259,31 @@ public class PAM {
       return null;
     }
 
-    public boolean closerMedoid(PAMData point, PAMData anotherPoint) {
+    public boolean closerMedoid(PAMData point, PAMData potentialMedoid) {
       for (int i = 0; i < this.medoids.size(); i++) {
-        if ( distance(point, medoids.get(i)) < distance(point, anotherPoint) ) {
+        if ( distance(point, medoids.get(i)) < distance(point, potentialMedoid) ) {
           return true;
         }
       }
       return false;
     }
+    
+    public PAMData closestMedoid(PAMData point) {
+      double distance = 0;
+      double lowest = 99999999999999999999999999999999999999999999.0;
+      for (int i = 0; i < this.medoids.size(); i++) {
+        distance = distance(point, medoids.get(i));
+        if (distance < lowest) {
+          lowest = distance;
+        }
+      }
+      for (int i = 0; i < this.medoids.size(); i++) {
+        if (distance(point,medoids.get(i)) == lowest) { return this.medoids.get(i); }
+      }
+      return null;
+    }
+          
+     
     
                                          
       
@@ -280,35 +298,66 @@ public class PAM {
       PAMData swapPoint = new PAMData();
       PAMData currentMedoid = new PAMData();
       PAMData currentPoint = new PAMData();
+      PAMData nextClosestMedoid = new PAMData();
       ArrayList<Data> currentCluster = new ArrayList<Data>();
+      int counter = 0;
       for (int i = 0; i < this.medoids.size(); i++) {
-        cluster();
         double totalCost = 0;
         currentMedoid = medoids.get(i); //i
+        medoids.remove(currentMedoid);
+        if (counter == 10) {
+          break;
+        }
         for (int j = 0; j < this.data.size()-1; j++) {
           swapPoint = data.get(j); //h
           data.remove(swapPoint);
+          counter++;
+          if (counter == 10) {
+            break;
+          }
           for (int k = 0; k < this.data.size()-1; k++) {
             currentPoint = data.get(k); //j
             currentCluster = getCluster(currentPoint);
+            nextClosestMedoid = closestMedoid(currentPoint); //j2
             //case 1
-            if  (currentCluster.contains(currentMedoid) && closerMedoid(currentPoint, swapPoint) == true) {
-              totalCost += (distance(currentPoint, swapPoint) - distance(currentPoint, currentMedoid));
-              System.out.println(totalCost);
+            if (counter == 10) {
+              break;
+            }
+            else {
+            if  (currentCluster.contains(currentMedoid) && closerMedoid(currentPoint, swapPoint)) {
+              totalCost += (distance(currentPoint, nextClosestMedoid) - distance(currentPoint, currentMedoid));
+              //System.out.println("case 1");
             }
             //case 2
-            else if (currentCluster.contains(currentMedoid) && closerMedoid(currentPoint, swapPoint) == false) {
+            else if (currentCluster.contains(currentMedoid) && !closerMedoid(currentPoint, swapPoint)) {
               totalCost += (distance(currentPoint, swapPoint) - distance(currentPoint, currentMedoid));
+              //System.out.println("case 2");
             }
-            else if (!currentCluster.contains(currentMedoid))
+            //case 3
+            else if (!currentCluster.contains(currentMedoid) && closerMedoid(currentPoint, swapPoint)) {
               totalCost += 0;
-            
-            //else if (currentPoint belongs to another cluster but its closer to...
-            totalCost += ( distance(data.get(j), swapPoint) - distance(data.get(j), data.get(j+1)) );
-            
+              //System.out.println("case 3");
+            }
+            //case 4
+            else if (!currentCluster.contains(currentMedoid) && !closerMedoid(currentPoint, swapPoint)) {
+              totalCost += ( distance(currentPoint, swapPoint) - distance(currentPoint, nextClosestMedoid ) );
+              //System.out.println(
+              //System.out.println("case 4");
+            }
+          }
+          }
+          
+          System.out.println(totalCost);
+          if (totalCost < 0) {
+            data.add(currentMedoid);
+            data.remove(swapPoint);
+            this.clusters.remove(currentCluster);
+            this.clusters.add(new PAMCluster(swapPoint));
+            cluster();
           }
         }
       }
+      
     }
     
        
@@ -417,6 +466,7 @@ public class PAM {
     String fileName2 = "Twitter/Relative_labeling/sigma=500/Twitter-Relative-Sigma-500.data";
     String fileName3 = "Twitter/Relative_labeling/sigma=1000/Twitter-Relative-Sigma-1000.data";
     String fileName4 = "Twitter/Relative_labeling/sigma=1500/Twitter-Relative-Sigma-1500.data";
+    String fileName5 = "Twitter/test1000samples.data.txt";
     
     PAM clusterPam = new PAM(fileName4, initAttNames, 3);
     //PAM clusterPam4 = new PAM(fileName4, initAttNames, 4);

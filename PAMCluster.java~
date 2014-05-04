@@ -18,7 +18,7 @@ public class PAMCluster extends Cluster {
   public void setMedoid(Data medoid) { this.medoid = medoid;}
   public double getCost() {return this.cost;}
   public void setCost(double cost) {this.cost = cost;}
-
+  public ArrayList<Data> getPoints() {return this.points;}
   
   public void calculateWSS() {
     for (int i = 0; i < points.size(); i++) {
@@ -39,6 +39,16 @@ public class PAMCluster extends Cluster {
       }
     }
   }
+  
+  public boolean contains(PAMData point) {
+    for (int i = 0; i < points.size(); i++) {
+      if (point == points.get(i)) {
+        return true;
+      }
+    }
+    return false;
+  }
+          
   
   public void computeCost(Data point) {
     for (int i = 0; i < points.size(); i++) {

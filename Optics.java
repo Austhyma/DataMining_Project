@@ -150,16 +150,6 @@ public class Optics {
     return seeds;
   }
   
-  public void expandClusters(ArrayList<OpticsData> points) {
-    ArrayList<OpticsData> clusterPoints = new ArrayList<OpticsData>();
-    OpticsData initPoint = points.get(0);
-    if (initPoint.getCoreDistance() != null) {
-      clusterPoints.add(initPoint);
-      
-    }
-    
-  }
-  
   //java Optics <filename> <epsilon> <minPoints> <euclidean>
   public static void main(String[] args) throws IOException {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};

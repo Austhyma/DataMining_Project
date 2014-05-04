@@ -75,10 +75,9 @@ public class Cluster {
     this.entropy -= (nonBuzzProb == 0) ? 0 : entropy(nonBuzzProb);
   }
   
-  public boolean isEqual(ArrayList<Data> otherList) {
+  public boolean equals(ArrayList<Data> otherList) {
     return (points.size() == otherList.size() && points.containsAll(otherList));
   }
-    
   
   public double entropy(double probability) {
     return probability * log2(probability);

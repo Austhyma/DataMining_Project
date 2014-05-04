@@ -71,32 +71,45 @@ public class Optics {
   //Algorithm
   public void computeOptics() {
     int count = 0;
+    int pointsProcessed = 0;
+    ArrayList<OpticsData> processedPoints = new ArrayList<OpticsData>();
     for (OpticsData point : dataset) {
-      if (point.processed()) continue;
-      ArrayList<Data> clusterPoints = new ArrayList<Data>();
+      if (processedPoints.contains(point)) {pointsProcessed++; continue;}
       ArrayList<OpticsData> neighbors = getNeighbors(point);
       System.out.println("Neighbors: " + neighbors.size());
-      point.process();
-      clusterPoints.add(point);
+      processedPoints.add(point);
       ArrayList<OpticsData> seeds = new ArrayList<OpticsData>();
       if (neighbors.size() >= this.minPoints) {
         point.coreDistance(neighbors, this.minPoints, this.euclidean);
-        seeds = update(neighbors, point, seeds, clusterPoints);
+        seeds = update(neighbors, point, seeds, processedPoints);
         //for (OpticsData q : seeds) {
         for (int i = 0; i < seeds.size(); i++) {
           OpticsData q = seeds.get(i);
           ArrayList<OpticsData> qNeighbors = getNeighbors(q);
           q.process();
-          clusterPoints.add(q);
+          processedPoints.add(q);
           if (qNeighbors.size() >= this.minPoints) {
             q.coreDistance(qNeighbors, this.minPoints, this.euclidean);
-            seeds = update(qNeighbors, q, seeds, clusterPoints);
+            seeds = update(qNeighbors, q, seeds, processedPoints);
           }
         }
       }
       System.out.println("Count: " + count++);
-      clusters.add(new Cluster(clusterPoints));
     }
+    System.out.println("Amount of core points with epsilon " + this.epsilon + ":");
+    System.out.println(processedPoints.size());
+    Collections.sort(processedPoints);
+    int corePoints = 0;
+    int noisePoints = 0;
+    for (OpticsData data : processedPoints) {
+      if (data.getReachabilityDistance() == 0) {noisePoints++; continue;}
+//      System.out.println(data.getReachabilityDistance());
+      corePoints++;
+    }
+    System.out.println(corePoints + " total core points");
+    System.out.println(noisePoints + " total noise points");
+    System.out.println(pointsProcessed + " total points processed");
+    expandClusters(processedPoints);
   }
   
   public ArrayList<OpticsData> getNeighbors(OpticsData point) {
@@ -112,10 +125,10 @@ public class Optics {
     return neighbors;
   }
   
-  public ArrayList<OpticsData> update(ArrayList<OpticsData> neighbors, OpticsData point, ArrayList<OpticsData> seeds, ArrayList<Data> clusterPoints) {
+  public ArrayList<OpticsData> update(ArrayList<OpticsData> neighbors, OpticsData point, ArrayList<OpticsData> seeds, ArrayList<OpticsData> processedPoints) {
     double coreDistance = point.getCoreDistance();
     for (OpticsData neighbor : neighbors) {
-      if (!clusterPoints.contains(neighbor)) {
+      if (!processedPoints.contains(neighbor)) {
         double reachabilityDistance = Math.max(coreDistance, neighbor.getReachabilityDistance());
         if (!seeds.contains(neighbor)) {
           neighbor.setReachabilityDistance(reachabilityDistance);
@@ -130,6 +143,10 @@ public class Optics {
     }
     Collections.sort(seeds);
     return seeds;
+  }
+  
+  public void expandClusters(ArrayList<OpticsData> points) {
+    
   }
   
   //java Optics <filename> <epsilon> <minPoints> <euclidean>

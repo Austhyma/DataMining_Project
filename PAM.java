@@ -182,18 +182,6 @@ public class PAM {
       
   }
   
-  public void setNewMedoids(ArrayList<PAMData> medoids) {
-    for (int i = 0; i < this.clusters.size(); i++) {
-      this.clusters.remove(i);
-    }
-    for (int j = 0; j < medoids.size(); j++) {
-      this.clusters.add(new PAMCluster(medoids.get(j)));
-    }
-  }
-    
-                                         
-
-  
 
     public void cluster() { 
     //Associates points with nearest medoid
@@ -229,18 +217,6 @@ public class PAM {
     }
     return distance;
   }
-    
-    public double computeCost(Data medoid) {
-      double totalCost = 0;
-      for (int i = 0; i < data.size(); i++) {
-        for (Iterator<String> stuff = data.get(i).getAttributes().keySet().iterator() ; stuff.hasNext();) {
-          String current = stuff.next();
-          totalCost += Math.abs(medoid.getAttribute(current) - data.get(i).getAttribute(current));
-        }
-      }
-      
-        return totalCost;
-    }
     
     public ArrayList<Data> getCluster(Data point) {
       for (int i = 0; i < this.clusters.size(); i++) {
@@ -290,16 +266,15 @@ public class PAM {
       PAMData nextClosestMedoid = new PAMData();
       PAMData bestMedoid = new PAMData();
       ArrayList<Data> currentCluster = new ArrayList<Data>();
-      PriorityQueue<PAMData> lowCosts = new PriorityQueue<PAMData>();
-      
-      double reduction = .01;
+      PriorityQueue<PAMData> lowCosts = new PriorityQueue<PAMData>();      
+      double reduction = 1;
       for (int i = 0; i < this.medoids.size(); i++) {
         currentMedoid = medoids.get(i); //i
         medoids.remove(currentMedoid);
         System.out.println("Next Medoid");
         int iterations = 0;
         for (int j = 0; j < (this.data.size()-1) * reduction; j++) {
-          if (iterations == 15) {break;}
+          if (iterations == 50) {break;}
           swapPoint = data.get(j); //h
           data.remove(swapPoint);
           double totalCost = 0;
@@ -310,29 +285,22 @@ public class PAM {
             //case 1
               if  (currentCluster.contains(currentMedoid) && closerMedoid(currentPoint, swapPoint)) {
                 totalCost += (distance(currentPoint, nextClosestMedoid) - distance(currentPoint, currentMedoid));
-                //System.out.println("case 1");
               }
               //case 2
               else if (currentCluster.contains(currentMedoid) && !closerMedoid(currentPoint, swapPoint)) {
                 totalCost += (distance(currentPoint, swapPoint) - distance(currentPoint, currentMedoid));
-                //System.out.println("case 2");
               }
               //case 3
               else if (!currentCluster.contains(currentMedoid) && closerMedoid(currentPoint, swapPoint)) {
                 totalCost += 0;
-                //System.out.println("case 3");
               }
               //case 4
               else if (!currentCluster.contains(currentMedoid) && !closerMedoid(currentPoint, swapPoint)) {
                 totalCost += ( distance(currentPoint, swapPoint) - distance(currentPoint, nextClosestMedoid ) );
-                //System.out.println(
-                //System.out.println("case 4");
+
               }
           }
-          
-          //TODO: IT'S NOT REMOVING THE CLUSTER
-          
-          //System.out.println(totalCost);
+          System.out.println(totalCost);
           if (totalCost < 0) {
             
             //data.add(currentMedoid);
@@ -344,6 +312,7 @@ public class PAM {
           }
           else {
             data.add(swapPoint);
+            //medoids.add(currentMedoid);
           }
           iterations++;
         }

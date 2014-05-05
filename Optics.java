@@ -5,15 +5,13 @@
 import java.util.*;
 import java.io.*;
 
-public class Optics {
+public class Optics extends ClusteringAlgorithm {
   //Input fields
   private BufferedReader file;
   private String[] attributeNames;
   private double epsilon;
   private int minPoints;
   //Computed/resultant fields
-  private ArrayList<OpticsData> dataset = new ArrayList<OpticsData>();
-  private ArrayList<Cluster> clusters = new ArrayList<Cluster>();
   private boolean euclidean;
   
   public Optics (String filename, String[] attributeNames, String epsilon, String minPoints, String euclidean) throws IOException {
@@ -73,12 +71,11 @@ public class Optics {
     int count = 0;
     int pointsProcessed = 0;
     ArrayList<OpticsData> processedPoints = new ArrayList<OpticsData>();
-    ArrayList<Data> clusterPoints = new ArrayList<Data>();
     for (OpticsData point : dataset) {
+      ArrayList<Data> clusterPoints = new ArrayList<Data>();
       if (processedPoints.contains(point)) {pointsProcessed++; continue;}
-      point.setNeighbors(getNeighbors(point));
-      ArrayList<OpticsData> neighbors = point.getNeighbors();
-//      System.out.println("Neighbors: " + neighbors.size());
+      ArrayList<OpticsData> neighbors = getNeighbors(point);
+      System.out.println("Neighbors: " + neighbors.size());
       processedPoints.add(point);
       ArrayList<OpticsData> seeds = new ArrayList<OpticsData>();
       if (neighbors.size() >= this.minPoints) {
@@ -96,9 +93,10 @@ public class Optics {
             seeds = update(qNeighbors, q, seeds, processedPoints);
           }
         }
+        System.out.println("Size of Cluster: " + clusterPoints.size());
+        this.clusters.add(new Cluster(clusterPoints));
       }
-      this.clusters.add(new Cluster(clusterPoints));
-//      System.out.println("Count: " + count++);
+      System.out.println("**************************************Point: " + count++);
     }
 //    System.out.println("Amount of core points with epsilon " + this.epsilon + ":");
 //    System.out.println(processedPoints.size());
@@ -114,7 +112,7 @@ public class Optics {
 //    System.out.println(noisePoints + " total noise points");
 //    System.out.println(pointsProcessed + " total points processed");
 //    System.out.println("Total Number of Clusters: " + this.clusters.size());
-    expandClusters(processedPoints);
+    calculateEntropy();
   }
   
   public ArrayList<OpticsData> getNeighbors(OpticsData point) {
@@ -153,6 +151,7 @@ public class Optics {
   //java Optics <filename> <epsilon> <minPoints> <euclidean>
   public static void main(String[] args) throws IOException {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};
-    Optics init = new Optics(args[0], initAttNames, args[1], args[2], args[3]);
+    Optics optics = new Optics(args[0], initAttNames, args[1], args[2], args[3]);
+    System.out.println(optics.getInfoGain());
   }
 }

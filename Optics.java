@@ -69,11 +69,11 @@ public class Optics extends ClusteringAlgorithm {
   //Algorithm
   public void computeOptics() {
     int count = 0;
-    int pointsProcessed = 0;
     ArrayList<OpticsData> processedPoints = new ArrayList<OpticsData>();
     for (OpticsData point : dataset) {
+      System.out.println("**************************************Point: " + count++);
       ArrayList<Data> clusterPoints = new ArrayList<Data>();
-      if (processedPoints.contains(point)) {pointsProcessed++; continue;}
+      if (processedPoints.contains(point)) {continue;}
       ArrayList<OpticsData> neighbors = getNeighbors(point);
       System.out.println("Neighbors: " + neighbors.size());
       processedPoints.add(point);
@@ -94,24 +94,10 @@ public class Optics extends ClusteringAlgorithm {
           }
         }
         System.out.println("Size of Cluster: " + clusterPoints.size());
+        //Collections.sort(clusterPoints);
         this.clusters.add(new Cluster(clusterPoints));
       }
-      System.out.println("**************************************Point: " + count++);
     }
-//    System.out.println("Amount of core points with epsilon " + this.epsilon + ":");
-//    System.out.println(processedPoints.size());
-    Collections.sort(processedPoints);
-    int corePoints = 0;
-    int noisePoints = 0;
-    for (OpticsData data : processedPoints) {
-      if (data.getReachabilityDistance() == 0) {noisePoints++; continue;}
-//      System.out.println(data.getReachabilityDistance());
-      corePoints++;
-    }
-//    System.out.println(corePoints + " total core points");
-//    System.out.println(noisePoints + " total noise points");
-//    System.out.println(pointsProcessed + " total points processed");
-//    System.out.println("Total Number of Clusters: " + this.clusters.size());
     calculateEntropy();
   }
   

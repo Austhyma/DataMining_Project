@@ -274,7 +274,7 @@ public class PAM {
         System.out.println("Next Medoid");
         int iterations = 0;
         for (int j = 0; j < (this.data.size()-1) * reduction; j++) {
-          if (iterations == 50) {break;}
+          if (iterations == 100) {break;}
           swapPoint = data.get(j); //h
           data.remove(swapPoint);
           double totalCost = 0;
@@ -434,16 +434,17 @@ public class PAM {
     String fileName4 = "Twitter/Relative_labeling/sigma=1500/Twitter-Relative-Sigma-1500.data";
     String fileName5 = "Twitter/test1000samples.data.txt";
     String fileName6 = "Twitter/20000samples.data";
+    String fileName7 = "Twitter/50000samples.data";
       
-    PAM clusterPam2 = new PAM(fileName6, initAttNames, 2);
-    PAM clusterPam4 = new PAM(fileName6, initAttNames, 4);
+    PAM clusterPam2 = new PAM(fileName7, initAttNames, 8);
+    PAM clusterPam4 = new PAM(fileName7, initAttNames, 16);
     //PAM clusterPam6 = new PAM(fileName1, initAttNames, 6);
     ArrayList<PAM> stuff = new ArrayList<PAM>(Arrays.asList(clusterPam2, clusterPam4));
     for (int i = 0; i < stuff.size(); i ++) {
       stuff.get(i).computeGoodness();
     }
     
-    output(stuff, fileName6);
+    output(stuff, fileName7);
   }
 
 }

@@ -300,7 +300,7 @@ public class PAM {
 
               }
           }
-          System.out.println(totalCost);
+          //System.out.println(totalCost);
           if (totalCost < 0) {
             
             //data.add(currentMedoid);
@@ -433,16 +433,17 @@ public class PAM {
     String fileName3 = "Twitter/Relative_labeling/sigma=1000/Twitter-Relative-Sigma-1000.data";
     String fileName4 = "Twitter/Relative_labeling/sigma=1500/Twitter-Relative-Sigma-1500.data";
     String fileName5 = "Twitter/test1000samples.data.txt";
-    
-    PAM clusterPam2 = new PAM(fileName1, initAttNames, 2);
-    PAM clusterPam4 = new PAM(fileName1, initAttNames, 4);
+    String fileName6 = "Twitter/20000samples.data";
+      
+    PAM clusterPam2 = new PAM(fileName6, initAttNames, 2);
+    PAM clusterPam4 = new PAM(fileName6, initAttNames, 4);
     //PAM clusterPam6 = new PAM(fileName1, initAttNames, 6);
     ArrayList<PAM> stuff = new ArrayList<PAM>(Arrays.asList(clusterPam2, clusterPam4));
     for (int i = 0; i < stuff.size(); i ++) {
       stuff.get(i).computeGoodness();
     }
     
-    output(stuff, fileName1);
+    output(stuff, fileName6);
   }
 
 }

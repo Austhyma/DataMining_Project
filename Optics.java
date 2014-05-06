@@ -13,6 +13,7 @@ public class Optics extends ClusteringAlgorithm {
   private int minPoints;
   //Computed/resultant fields
   private boolean euclidean;
+  private long time;
   
   public Optics (String filename, String[] attributeNames, String epsilon, String minPoints, String euclidean) throws IOException {
     try {
@@ -29,6 +30,7 @@ public class Optics extends ClusteringAlgorithm {
   }
   
   public void initData() throws IOException {
+    System.out.println("Initializing Data");
     String line = this.file.readLine();
     int count = 0;
     while (line != null) {
@@ -68,14 +70,14 @@ public class Optics extends ClusteringAlgorithm {
   
   //Algorithm
   public void computeOptics() {
+    System.out.println("Computing Optics");
+    long start = System.currentTimeMillis();
     int count = 0;
     ArrayList<OpticsData> processedPoints = new ArrayList<OpticsData>();
     for (OpticsData point : dataset) {
-      System.out.println("**************************************Point: " + count++);
-      ArrayList<Data> clusterPoints = new ArrayList<Data>();
+      ArrayList<OpticsData> clusterPoints = new ArrayList<OpticsData>();
       if (processedPoints.contains(point)) {continue;}
       ArrayList<OpticsData> neighbors = getNeighbors(point);
-      System.out.println("Neighbors: " + neighbors.size());
       processedPoints.add(point);
       ArrayList<OpticsData> seeds = new ArrayList<OpticsData>();
       if (neighbors.size() >= this.minPoints) {
@@ -93,11 +95,13 @@ public class Optics extends ClusteringAlgorithm {
             seeds = update(qNeighbors, q, seeds, processedPoints);
           }
         }
-        System.out.println("Size of Cluster: " + clusterPoints.size());
-        //Collections.sort(clusterPoints);
-        this.clusters.add(new Cluster(clusterPoints));
+        Collections.sort(clusterPoints);
+        this.clusters.add(new OpticsCluster(clusterPoints));
       }
     }
+    long elapsedTime = (System.currentTimeMillis() - start)/1000;
+    this.time = elapsedTime;
+    System.out.println("Time to compute Optics: " + elapsedTime + " seconds");
     calculateEntropy();
   }
   
@@ -134,10 +138,81 @@ public class Optics extends ClusteringAlgorithm {
     return seeds;
   }
   
+  public void output(String filename) throws IOException {
+    PrintWriter output = new PrintWriter(new FileWriter(filename + "-results.csv"));
+    output.println("Size of Dataset, " + this.dataset.size());
+    output.println("Epsilon, " + this.epsilon);
+    output.println("MinPoints, " + this.minPoints);
+    output.println("InfoGain, " + this.infoGain);
+    output.println("Number of Clusters, " + this.clusters.size());
+    String metric = (euclidean) ? "Euclidean" : "Manhattan";
+    output.println("Distance Metric, " + metric);
+    double totalBuzz = 0;
+    double totalNonBuzz = 0;
+    for (OpticsData point : this.dataset) {
+      if (point.getBuzz()) totalBuzz+=1;
+      else totalNonBuzz+=1;
+    }
+    output.println("Number of Buzz, " + totalBuzz);
+    totalBuzz /= this.dataset.size();
+    output.println("Percent Buzz, " + totalBuzz);
+    output.println("Number of NonBuzz, " + totalNonBuzz);
+    totalNonBuzz /= this.dataset.size();
+    output.println("Percent NonBuzz, " + totalNonBuzz);
+    output.println("Parent Entropy, " + this.parentEntropy);
+    output.println("Weighted Entropy, " + this.weightedEntropy);
+    output.println("Elapsed Time, " + this.time);
+    output.println("List of Clusters, Entropy, Average Core Distance, Size of Cluster");
+    int count = 0;
+    for (OpticsCluster cluster : this.clusters) {
+      String line = count + ", ";
+      count++;
+      line += cluster.getEntropy() + ", ";
+      double total = 0;
+      for (OpticsData point : cluster.getPoints()) {
+        total += point.getCoreDistance();
+      }
+      total /= (double) cluster.size();
+      line += total + ", ";
+      line += cluster.size();
+      output.println(line);
+    }
+    output.close();
+    outputClusters(filename);
+  }
+  
+  public void outputClusters(String filename) throws IOException {
+    PrintWriter output = new PrintWriter(new FileWriter(filename + "-clusters.csv"));
+    String reachabilityList = "";
+    for (OpticsCluster cluster : this.clusters) {
+      for (OpticsData point : cluster.getPoints()) {
+        reachabilityList += point.getReachabilityDistance() + ", ";
+      }
+    }
+    output.println("Reachability, All");
+    output.println(reachabilityList);
+    output.println("Reachability, Individual");
+    for (OpticsCluster cluster : this.clusters) {
+      String line = "";
+      for (OpticsData point : cluster.getPoints()) {
+        line += point.getReachabilityDistance() + ", ";
+      }
+      output.println(line);
+    }
+    output.println("Core, Individual");
+    for (OpticsCluster cluster : this.clusters) {
+      String line = "";
+      for (OpticsData point : cluster.getPoints()) {
+        line += point.getReachabilityDistance() + ", ";
+      }
+      output.println(line);
+    }
+  }
+  
   //java Optics <filename> <epsilon> <minPoints> <euclidean>
   public static void main(String[] args) throws IOException {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};
     Optics optics = new Optics(args[0], initAttNames, args[1], args[2], args[3]);
-    System.out.println(optics.getInfoGain());
+    optics.output(args[0]);
   }
 }

@@ -214,5 +214,6 @@ public class Optics extends ClusteringAlgorithm {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};
     Optics optics = new Optics(args[0], initAttNames, args[1], args[2], args[3]);
     optics.output(args[0]);
+    System.out.println("Finished");
   }
 }

@@ -9,11 +9,12 @@ public class GroupAverage {
   //Input fields
   private BufferedReader file;
   private String[] attributeNames;
-  private double[][] distances;
+  private double[][] masterDistances;
   //Computed/resultant fields
   private ArrayList<Data> dataset = new ArrayList<Data>();
   private ArrayList<Cluster2> clusters = new ArrayList<Cluster2>();
-  double manMeasure = 0.0;
+  //Stuff for output
+  
   
   public GroupAverage (String filename, String[] attributeNames) throws IOException {
     try {
@@ -24,87 +25,159 @@ public class GroupAverage {
     }
     this.attributeNames = attributeNames;
     initData();
+    groupAverage();    
+    output("groupAverage2Clusters");
+  }
+  
+  public void groupAverage() {
+    this.masterDistances = new double[dataset.size()][dataset.size()];
+    calculateDistances();
+    System.out.println("Clustering...");
+    while(this.clusters.size() != 2) {      
+      mergeClusters();
+    }
+    System.out.println("Final Clusters: "+this.clusters.size());
+    for(int i = 0; i < this.clusters.size(); i++) {
+      System.out.println("Cluster Size: "+this.clusters.get(i).getPoints().size());
+      this.clusters.get(i).calculateEntropy();
+      System.out.println("Entropy: "+this.clusters.get(i).weightedEntropy);
+    }
+    for(int x = 0; x < masterDistances.length; x++) {
+      for(int y = 0; y < masterDistances.length; y++) {
+        System.out.println(masterDistances[x][y]);
+      }
+    }    
   }
   
   
-  //add items to HashMap<int, Cluster2>()
-  public void initData() throws IOException {
+  //initialize the data
+  public void initData() throws IOException {    
     String line = this.file.readLine();
     int count = 0;
     while (line != null) {
       String[] lineVals = line.split(",");
       HashMap<String, Double> attributes = new HashMap<String, Double>();
-      for (int i = 0; i < lineVals.length - 1; i++) {
-        attributes.put(this.attributeNames[i], Double.parseDouble(lineVals[i]));
+      for (int i = 0; i < this.attributeNames.length; i++) {
+        LinkedList<Double> values = new LinkedList<Double>();
+        for (int j = i*7; j < (i*7)+7; j++) {
+          values = insertValue(values, Double.parseDouble(lineVals[j]));
+        }
+        attributes.put(this.attributeNames[i], values.get(values.size()/2));
       }
       double buzzVal = Double.parseDouble(lineVals[lineVals.length - 1]);
-      this.dataset.add(new Data(attributes, buzzVal == 1.0));
-      System.out.println("DataSet Size: "+dataset.size());
+      this.dataset.add(new Data(attributes, (buzzVal == 1.0)));
       line = file.readLine();
-      System.out.println("Line: " + count++);
     }
-      for(int j = 0; j<=dataset.size(); j++) {
-        Cluster2 c =  new Cluster2(dataset.get(j));
-        clusters.add(c);
+    for(int j = 0; j < dataset.size(); j++) {
+      ArrayList<Data> d = new ArrayList<Data>();
+      d.add(dataset.get(j));
+      this.clusters.add(new Cluster2(d));
+    }
+  }
+  
+  public LinkedList<Double> insertValue(LinkedList<Double> values, double value) {
+    LinkedList<Double> a = values;
+    if (a.size() == 0) {
+      a.add(value);
+    }
+    else {
+      int j = 0;
+      int x = 0;
+      while ((j < a.size()) && (a.get(j) <= value)) {
+        j++;
+        x = j;
       }
+      a.add(x, value);
+    }
+    return a;
   }
   
   //take the data and find the lowest distance using the average
-  //must normalize distances!!!!!!
-  public void calculateDistances(ArrayList<Cluster2> clusters) {
-    this.clusters = clusters;
-    for(int i = 0; i < clusters.size(); i++) {
-      for(int j = 0; j < clusters.size(); j++) {
-        distances[i][j] = clusters.get(i).distance(clusters.get(j));
+  public void calculateDistances() {
+    double[][] distances = new double[this.clusters.size()][this.clusters.size()];
+    for(int i = 0; i < this.clusters.size(); i++) {
+      for(int j = 0; j < this.clusters.size(); j++) {
+        if(i == j) {
+          distances[i][j] = 0.0;
+        }
+        else {
+        distances[i][j] = this.clusters.get(i).distance(this.clusters.get(j));
+        }
       }
     }
-    mergeClusters(clusters, distances);
-    calculateDistances(clusters);
+    this.masterDistances = distances;
   }
   
-//find the shortest distance  
+//find the shortest distance 
 //replace the old clusters with the new ones
-  public ArrayList<Cluster2> mergeClusters(ArrayList<Cluster2> clist, double[][] distances) {
-    double shortestDistance = 0.0;
+  public void mergeClusters() {    
+    double newSD = Double.POSITIVE_INFINITY;
     int shortI = 0;
     int shortJ = 0;
-    for(int i = 0; i < distances.length; i++) {
-      for(int j = 0; j <distances[i].length; j++) {
-        if(distances[i][j] == 0.0) {
-          j++;
+    for(int i = 0; i < this.masterDistances.length; i++) {
+      for(int j = 0; j < this.masterDistances[i].length; j++) {
+        if(i == j) {
+          continue;
         }
-        else if(distances[i][j] < shortestDistance) {
-          shortestDistance = distances[i][j];
+        else if(this.masterDistances[i][j] < newSD) {
+          newSD = this.masterDistances[i][j];
           shortI = i;
           shortJ = j;
         }
+      }
+    }
+    Cluster2 c = this.clusters.get(shortI);
+    c.addAllPoints(this.clusters.get(shortJ).getPoints());
+    if(shortI > shortJ) {
+      this.clusters.remove(shortI);
+      this.clusters.remove(shortJ);
+    }
+    else if(shortJ > shortI) {
+      this.clusters.remove(shortJ);
+      this.clusters.remove(shortI);
+    }
+    this.clusters.add(c);
+    calculateDistances();
+  }
+  
+  public void output(String filename) throws IOException {
+    PrintWriter output = new PrintWriter(new FileWriter(filename + "-results.csv"));
+    output.println("Size of Dataset, " + this.dataset.size());
+    output.println("Number of Clusters, " + this.clusters.size());
+    double totalBuzz = 0;
+    double totalNonBuzz = 0;
+    for (Data point : this.dataset) {
+      if (point.getBuzz()) totalBuzz+=1;
+      else totalNonBuzz+=1;
+    }
+    output.println("Number of Buzz, " + totalBuzz);
+    output.println("Number of NonBuzz, " + totalNonBuzz);
+    for(int i = 0; i < this.clusters.size(); i++) {
+      output.println("Entropy, " + this.clusters.get(i).weightedEntropy);
+      output.println("Info Gain , " + this.clusters.get(i).getInfoGain());
+    }    
+    output.close();
+    // wss/bss?
+  } 
+  
+  /*public void updateMatrix() {
+    double[][] newMatrix = new double[this.clusters.size()][this.clusters.size()];
+    for(int i = 0; i < newMatrix.length; i++) {
+      for(int j = 0; j < newMatrix[i].length; j++) {        
+        if(i == j) {
+          newMatrix[i][j] = 0.0;
+        }
         else {
-          j++;
+          newMatrix[i][j] = this.clusters.get(i).distance(this.clusters.get(j));
         }
       }
-      Cluster2 c = clist.get(shortI);
-      for(int x = 0; x < clist.get(shortJ).getPoints().size(); x++) {
-        c.addPoint(clist.get(shortJ).getPoints().get(x));
-      }      
     }
-    clist.remove(clist.get(shortJ));
-    return clist;
-  }
+    this.masterDistances = newMatrix;
+  }*/
   
   //java GroupAverage <filename>
   public static void main(String[] args) throws IOException {
-    String[] initAttNames = {"NCD_0", "NCD_1", "NCD_2", "NCD_3", "NCD_4", "NCD_5", "NCD_6",
-                            "AI_0", "AI_1", "AI_2", "AI_3", "AI_4", "AI_5", "AI_6",
-                            "AS(NA)_0", "AS(NA)_1", "AS(NA)_2", "AS(NA)_3", "AS(NA)_4", "AS(NA)_5", "AS(NA)_6",
-                            "BL_0", "BL_1", "BL_2", "BL_3", "BL_4", "BL_5", "BL_6",
-                            "NAC_0", "NAC_1", "NAC_2", "NAC_3", "NAC_4", "NAC_5", "NAC_6",
-                            "AS(NAC)_0", "AS(NAC)_1", "AS(NAC)_2", "AS(NAC)_3", "AS(NAC)_4", "AS(NAC)_5", "AS(NAC)_6",
-                            "CS_0", "CS_1", "CS_2", "CS_3", "CS_4", "CS_5", "CS_6",
-                            "AT_0", "AT_1", "AT_2", "AT_3", "AT_4", "AT_5", "AT_6",
-                            "NA_0", "NA_1", "NA_2", "NA_3", "NA_4", "NA_5", "NA_6",
-                            "ADL_0", "ADL_1", "ADL_2", "ADL_3", "ADL_4", "ADL_5", "ADL_6",
-                            "NAD_0", "NAD_1", "NAD_2", "NAD_3", "NAD_4", "NAD_5", "NAD_6"
-                            };
+    String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};
     GroupAverage init = new GroupAverage(args[0], initAttNames);
   }
 }

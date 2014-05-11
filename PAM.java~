@@ -274,7 +274,7 @@ public class PAM {
         System.out.println("Next Medoid");
         int iterations = 0;
         for (int j = 0; j < (this.data.size()-1) * reduction; j++) {
-          //if (iterations == 50) {break;}
+          if (iterations == 100) {break;}
           swapPoint = data.get(j); //h
           data.remove(swapPoint);
           double totalCost = 0;
@@ -428,22 +428,22 @@ public class PAM {
   //java PAM <filename>
   public static void main(String[] args) throws IOException {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};
-    String fileName1 = "Twitter/Absolute_labeling/Twitter-Absolute-Sigma-500.data";
-    String fileName2 = "Twitter/Relative_labeling/sigma=500/Twitter-Relative-Sigma-500.data";
-    String fileName3 = "Twitter/Relative_labeling/sigma=1000/Twitter-Relative-Sigma-1000.data";
-    String fileName4 = "Twitter/Relative_labeling/sigma=1500/Twitter-Relative-Sigma-1500.data";
-    String fileName5 = "Twitter/test1000samples.data.txt";
-    String fileName6 = "Twitter/20000samples.data";
+    String fileName1 = "PAM/1000samples.data";
+    String fileName2 = "PAM/2000samples.data";
+    String fileName3 = "PAM/4000samples.data";
+    String fileName4 = "PAM/8000samples.data";
+
+  
       
-    PAM clusterPam2 = new PAM(fileName6, initAttNames, 2);
-    PAM clusterPam4 = new PAM(fileName6, initAttNames, 4);
+    PAM clusterPam2 = new PAM(fileName4, initAttNames, 2);
+    PAM clusterPam4 = new PAM(fileName4, initAttNames, 4);
     //PAM clusterPam6 = new PAM(fileName1, initAttNames, 6);
     ArrayList<PAM> stuff = new ArrayList<PAM>(Arrays.asList(clusterPam2, clusterPam4));
     for (int i = 0; i < stuff.size(); i ++) {
       stuff.get(i).computeGoodness();
     }
     
-    output(stuff, fileName6);
+    output(stuff, fileName4);
   }
 
 }

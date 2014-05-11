@@ -428,23 +428,22 @@ public class PAM {
   //java PAM <filename>
   public static void main(String[] args) throws IOException {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};
-    String fileName1 = "Twitter/Absolute_labeling/Twitter-Absolute-Sigma-500.data";
-    String fileName2 = "Twitter/Relative_labeling/sigma=500/Twitter-Relative-Sigma-500.data";
-    String fileName3 = "Twitter/Relative_labeling/sigma=1000/Twitter-Relative-Sigma-1000.data";
-    String fileName4 = "Twitter/Relative_labeling/sigma=1500/Twitter-Relative-Sigma-1500.data";
-    String fileName5 = "Twitter/test1000samples.data.txt";
-    String fileName6 = "Twitter/20000samples.data";
-    String fileName7 = "Twitter/50000samples.data";
+    String fileName1 = "PAM/1000samples.data";
+    String fileName2 = "PAM/2000samples.data";
+    String fileName3 = "PAM/4000samples.data";
+    String fileName4 = "PAM/8000samples.data";
+
+  
       
-    PAM clusterPam2 = new PAM(fileName7, initAttNames, 8);
-    PAM clusterPam4 = new PAM(fileName7, initAttNames, 16);
+    PAM clusterPam2 = new PAM(fileName4, initAttNames, 8);
+    PAM clusterPam4 = new PAM(fileName4, initAttNames, 16);
     //PAM clusterPam6 = new PAM(fileName1, initAttNames, 6);
     ArrayList<PAM> stuff = new ArrayList<PAM>(Arrays.asList(clusterPam2, clusterPam4));
     for (int i = 0; i < stuff.size(); i ++) {
       stuff.get(i).computeGoodness();
     }
     
-    output(stuff, fileName7);
+    output(stuff, fileName4);
   }
 
 }

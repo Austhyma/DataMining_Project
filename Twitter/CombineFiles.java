@@ -25,7 +25,7 @@ public class CombineFiles {
   public static void main(String[] args) throws IOException {
     ArrayList<String> allLines = extractLines(args[0], true);
     allLines.addAll(extractLines(args[0], false));
-    PrintWriter outFile = new PrintWriter (new FileWriter(args[0] + "samples.data"));
+    PrintWriter outFile = new PrintWriter (new FileWriter(args[0] + "samples.test.data"));
     for (int i = 0; i < allLines.size(); i++) {
       outFile.println(allLines.get(i));
     }

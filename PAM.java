@@ -6,7 +6,7 @@ import java.util.*;
 import java.io.*;
 
 
-public class PAM {
+public class PAM extends PAMClusteringAlgorithm {
   
   
   public int k;
@@ -131,7 +131,7 @@ public class PAM {
   }
   
   
-  public LinkedList<Double> insertValue(LinkedList<Double> values, double value) {
+  public static LinkedList<Double> insertValue(LinkedList<Double> values, double value) {
     LinkedList<Double> a = values;
     if (a.size() == 0) {
       a.add(value);
@@ -340,7 +340,7 @@ public class PAM {
     double smallestDistance = Double.POSITIVE_INFINITY;
     PAMCluster smallest = null;
     for (int i = 0; i < this.clusters.size(); i++) {
-      double distance = this.clusters.get(i).distance(point);
+      double distance = this.clusters.get(i).getMedoid().distance(point);
       if (distance < smallestDistance) {
         smallestDistance = distance;
         smallest = this.clusters.get(i);
@@ -367,7 +367,7 @@ public class PAM {
       if (point.getBuzz() && point.getPrediction()) truePositives += 1;
       if (!point.getBuzz() && !point.getPrediction()) trueNegatives += 1;
       if (!point.getBuzz() && point.getPrediction()) falsePositives += 1;
-      if (point.getBuzz() && !point.getPrediction()) truePositives += 1;
+      if (point.getBuzz() && !point.getPrediction()) falseNegatives += 1;
     }
     this.precision = truePositives/(truePositives + falsePositives);
     this.recall = truePositives/(truePositives + falseNegatives);
@@ -423,6 +423,35 @@ public class PAM {
     }
     outFile.close();
   }
+    public static ArrayList<PAMTestingData> initTestingData(String filename, String[] attNames) throws IOException {
+      ArrayList<PAMTestingData> retVals = new ArrayList<PAMTestingData>();
+      BufferedReader file = null;
+      try {
+        file = new BufferedReader(new FileReader(filename));
+      }
+      catch (FileNotFoundException e) {
+        System.out.println("Can not find file: " + filename);
+      }
+      System.out.println("Initializing Data");
+      String line = file.readLine();
+      int count = 0;
+      while (line != null) {
+        String[] lineVals = line.split(",");
+        HashMap<String, Double> attributes = new HashMap<String, Double>();
+        for (int i = 0; i < attNames.length; i++) {
+          LinkedList<Double> values = new LinkedList<Double>();
+          for (int j = i*7; j < (i*7)+7; j++) {
+            values = insertValue(values, Double.parseDouble(lineVals[j]));
+          }
+          attributes.put(attNames[i], values.get(values.size()/2));
+        }
+        double buzzVal = Double.parseDouble(lineVals[lineVals.length - 1]);
+        retVals.add(new PAMTestingData(attributes, (buzzVal == 1.0)));
+        line = file.readLine();
+        //System.out.println("Line: " + count++);
+      }
+      return retVals;
+    }
     
     
     
@@ -436,18 +465,20 @@ public class PAM {
     String fileName2 = "PAM/2000samples.data";
     String fileName3 = "PAM/4000samples.data";
     String fileName4 = "PAM/8000samples.data";
-
-  
-      
+    
     PAM clusterPam2 = new PAM(fileName4, initAttNames, 8);
     PAM clusterPam4 = new PAM(fileName4, initAttNames, 16);
     //PAM clusterPam6 = new PAM(fileName1, initAttNames, 6);
+    
     ArrayList<PAM> stuff = new ArrayList<PAM>(Arrays.asList(clusterPam2, clusterPam4));
+    ArrayList<PAMTestingData> testingData = initTestingData(fileName4, initAttNames);
+    
     for (int i = 0; i < stuff.size(); i ++) {
       stuff.get(i).computeGoodness();
+      stuff.get(i).predictionAnalysis(testingData);
     }
     
-    output(stuff, fileName4);
+    //output(stuff, fileName4);
   }
 
 }

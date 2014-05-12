@@ -25,4 +25,16 @@ public class PAMData extends Data implements Comparable<PAMData>{
   
   public void setClosestMedoid(int closestMedoid) {this.closestMedoid = closestMedoid;}
   public int getClosestMedoid() {return this.closestMedoid;}
+  
+  public double distance(PAMTestingData point) {
+    double distance = 0;
+      for (String attribute : point.getAttributes().keySet()) {
+        double manValue = Math.abs(this.getAttribute(attribute) - point.getAttribute(attribute));
+        distance += manValue;
+      }
+    
+    return distance;
+  }
+  
+  
 }

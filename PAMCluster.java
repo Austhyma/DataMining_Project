@@ -28,16 +28,7 @@ public class PAMCluster extends Cluster {
     }
   }
   
-  public double distance(PAMTestingData point) {
-    double distance = 0;
-    for (Data clusterPoint : this.points) {
-      for (String attribute : clusterPoint.getAttributes().keySet()) {
-        double manValue = Math.abs(clusterPoint.getAttribute(attribute) - point.getAttribute(attribute));
-        distance += manValue;
-      }
-    }
-    return distance;
-  }
+  
   
   public boolean contains(Data point) {
     for (int i = 0; i < points.size(); i++) {

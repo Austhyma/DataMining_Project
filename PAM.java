@@ -208,7 +208,7 @@ public class PAM {
     }
   }
   
-  public double distance(Data current, Data medoid) {
+  public double distance(PAMData current, PAMData medoid) {
     double distance = 0;
     for (Iterator<String> attribute = current.getAttributes().keySet().iterator(); attribute.hasNext();) {
       String currentAttribute = attribute.next();
@@ -218,7 +218,7 @@ public class PAM {
     return distance;
   }
     
-    public ArrayList<Data> getCluster(Data point) {
+    public ArrayList<Data> getCluster(PAMData point) {
       for (int i = 0; i < this.clusters.size(); i++) {
         if (clusters.get(i).contains(point)) {
           return clusters.get(i).getPoints();
@@ -228,7 +228,7 @@ public class PAM {
       return null;
     }
 
-    public boolean closerMedoid(Data point, Data potentialMedoid) {
+    public boolean closerMedoid(PAMData point, PAMData potentialMedoid) {
       for (int i = 0; i < this.medoids.size(); i++) {
         if ( distance(point, medoids.get(i)) < distance(point, potentialMedoid) ) {
           return true;
@@ -336,47 +336,51 @@ public class PAM {
       }
     }
     
+    public PAMTestingData predict(PAMTestingData point) {
+    double smallestDistance = Double.POSITIVE_INFINITY;
+    PAMCluster smallest = null;
+    for (int i = 0; i < this.clusters.size(); i++) {
+      double distance = this.clusters.get(i).distance(point);
+      if (distance < smallestDistance) {
+        smallestDistance = distance;
+        smallest = this.clusters.get(i);
+      }
+    }
+    point.setPrediction(smallest.classCount(true) >= smallest.classCount(false));
+    return point;
+  }
+    
+    public void predictionAnalysis(ArrayList<PAMTestingData> initTestingData) {
+    ArrayList<PAMTestingData> testingData = new ArrayList<PAMTestingData>();
+    for (PAMTestingData initPoint : initTestingData) {
+      testingData.add(predict(initPoint));
+    }
+    confusionMatrix(testingData);
+  }
+    
+    public void confusionMatrix(ArrayList<PAMTestingData> testingData) {
+    double truePositives = 0;
+    double trueNegatives = 0;
+    double falsePositives = 0; 
+    double falseNegatives = 0;
+    for (PAMTestingData point : testingData) {
+      if (point.getBuzz() && point.getPrediction()) truePositives += 1;
+      if (!point.getBuzz() && !point.getPrediction()) trueNegatives += 1;
+      if (!point.getBuzz() && point.getPrediction()) falsePositives += 1;
+      if (point.getBuzz() && !point.getPrediction()) truePositives += 1;
+    }
+    this.precision = truePositives/(truePositives + falsePositives);
+    this.recall = truePositives/(truePositives + falseNegatives);
+    this.accuracy = (truePositives + trueNegatives)/(double) testingData.size();
+    this.f1 = (2 * this.recall * this.precision)/(this.recall + this.precision);
+    System.out.println("truePositives: " + truePositives);
+    System.out.println("trueNegatives: " + trueNegatives);
+    System.out.println("falsePositives: " + falsePositives);
+    System.out.println("falseNegatives: " + falseNegatives);
+  }
+    
    
         
-        /*double currentCost = computeCost(medoids.get(i));
-        System.out.println("Current cost: " + currentCost);
-        int counter = 0;
-        PAMData bestMedoid = new PAMData();
-        for (int j = 0; j < data.size()-k; j++) {
-          double swapCost = 0;
-          swapCost = computeCost(data.get(j));
-          //System.out.println("Swap " + swapCost);
-          //if the cost after swapping is less than current cost
-          if (swapCost < currentCost && counter < 3) {
-            //the current configuration stays
-            currentCost = swapCost;
-            counter++;
-            bestMedoid = data.get(j);
-            System.out.println("Iteration: " + counter + " for medoid " + i);
-            System.out.println("Cost " + swapCost);
-            System.out.println();
-          }
-          
-          else if (swapCost > currentCost){
-            continue;
-          }
-          else {
-            newMedoids.add(bestMedoid);
-            data.remove(data.get(j));
-            data.add(medoids.get(i));
-            double bestCost = computeCost(bestMedoid);
-            System.out.println("Best Cost: " + bestCost);
-            //System.out.println("Medoid " + i + " cost after = " + computeCost(medoids.get(i)));
-            System.out.println("=================================================================");
-            System.out.println();
-            break;
-          }
-        }
-      }
-      System.out.println(data.size());
-      return newMedoids;
-      
-    }*/
     
     
     public static void output(ArrayList<PAM> current, String filename) throws IOException {

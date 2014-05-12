@@ -2,9 +2,9 @@ import java.util.*;
 
 
 public class PAMCluster extends Cluster {
-  protected Data medoid;
+  protected PAMData medoid;
   
-  public PAMCluster(Data medoid) {
+  public PAMCluster(PAMData medoid) {
     super();
     this.medoid = medoid;
   }
@@ -13,9 +13,9 @@ public class PAMCluster extends Cluster {
     super();
   }
   
-  public Data getMedoid() {return this.medoid;}
-  public void setMedoid(Data medoid) { this.medoid = medoid;}
-  public ArrayList<Data> getPoints() {return this.points;}
+  public PAMData getMedoid() {return this.medoid;}
+  public void setMedoid(PAMData medoid) { this.medoid = medoid;}
+  //public ArrayList<Data> getPoints() {return this.points;}
   
   public void calculateWSS() {
     for (int i = 0; i < points.size(); i++) {
@@ -28,7 +28,16 @@ public class PAMCluster extends Cluster {
     }
   }
   
-  
+  public double distance(PAMTestingData point) {
+    double distance = 0;
+    for (Data clusterPoint : this.points) {
+      for (String attribute : clusterPoint.getAttributes().keySet()) {
+        double manValue = Math.abs(clusterPoint.getAttribute(attribute) - point.getAttribute(attribute));
+        distance += manValue;
+      }
+    }
+    return distance;
+  }
   
   public boolean contains(Data point) {
     for (int i = 0; i < points.size(); i++) {

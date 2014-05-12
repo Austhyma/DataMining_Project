@@ -235,8 +235,8 @@ public class GroupAverage {
   //java GroupAverage <filename>
   public static void main(String[] args) throws IOException {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};
-    GroupAverage init = new GroupAverage("GroupAverage/1000samples.data", initAttNames, 2);
-    GroupAverage init2 = new GroupAverage("GroupAverage/1000samples.data", initAttNames, 4);
-    GroupAverage init3 = new GroupAverage("GroupAverage/1000samples.data", initAttNames, 8);
+    GroupAverage init = new GroupAverage("GroupAverage/2000samples.data", initAttNames, 2);
+    GroupAverage init2 = new GroupAverage("GroupAverage/2000samples.data", initAttNames, 4);
+    GroupAverage init3 = new GroupAverage("GroupAverage/2000samples.data", initAttNames, 8);
   }
 }

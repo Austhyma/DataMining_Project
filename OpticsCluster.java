@@ -48,7 +48,7 @@ public class OpticsCluster {
   public double classCount(boolean buzz) {
     double counter = 0;
     for (int i = 0; i < points.size(); i++) {
-      if (points.get(i).getBuzz() == buzz) { counter++;}
+      if (points.get(i).getBuzz() == buzz) {counter++;}
     }
     return counter;
   }

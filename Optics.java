@@ -268,6 +268,10 @@ public class Optics extends ClusteringAlgorithm {
     this.recall = truePositives/(truePositives + falseNegatives);
     this.accuracy = (truePositives + trueNegatives)/(double) testingData.size();
     this.f1 = (2 * this.recall * this.precision)/(this.recall + this.precision);
+    System.out.println("truePositives: " + truePositives);
+    System.out.println("trueNegatives: " + trueNegatives);
+    System.out.println("falsePositives: " + falsePositives);
+    System.out.println("falseNegatives: " + falseNegatives);
   }
   
   //java Optics <filename> <epsilon> <minPoints> <euclidean>
@@ -277,7 +281,7 @@ public class Optics extends ClusteringAlgorithm {
     Optics optics = new Optics(trainingData, args[1], args[2], args[3]);
     
     //Testing
-    ArrayList<OpticsTestingData> testingData = initTestingData("1000samples.test.data", initAttNames);
+    ArrayList<OpticsTestingData> testingData = initTestingData("Twitter/1000samples.test.data", initAttNames);
     optics.predictionAnalysis(testingData);
     optics.output(args[0]);
     System.out.println("Finished");

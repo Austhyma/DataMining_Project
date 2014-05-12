@@ -1,16 +1,16 @@
-Size of Dataset, 1000
+Size of Dataset, 2000
 Number of Clusters, 2
-Number of Buzz, 197.0
-Number of NonBuzz, 803.0
+Number of Buzz, 394.0
+Number of NonBuzz, 1606.0
 ---------------------------------------------
-Cluster 0 size: 1
+Cluster 0 size: 1988
+Entropy, 0.7059535338145684
+WSS , 1.6960558336139421E9
+---------------------------------------------
+Cluster 1 size: 12
 Entropy, 0.0
-WSS , 0.0
+WSS , 1.8616183226672363E8
 ---------------------------------------------
-Cluster 1 size: 999
-Entropy, 0.7142549418735151
-WSS , 1.221917079624926E9
----------------------------------------------
-BSS , 3.2301879524565648E16
-TotalWSS , 1.221917079624926E9
-TotalInfoGain , 0.28645931306835837
+BSS , 1.056818030908418E16
+TotalWSS , 1.8822176658806658E9
+TotalInfoGain , 0.298282187388319

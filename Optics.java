@@ -7,51 +7,81 @@ import java.io.*;
 
 public class Optics extends ClusteringAlgorithm {
   //Input fields
-  private BufferedReader file;
-  private String[] attributeNames;
   private double epsilon;
   private int minPoints;
   //Computed/resultant fields
   private boolean euclidean;
   private long time;
   
-  public Optics (String filename, String[] attributeNames, String epsilon, String minPoints, String euclidean) throws IOException {
+  public Optics (ArrayList<OpticsData> dataset, String epsilon, String minPoints, String euclidean) throws IOException {
+    this.dataset = dataset;
+    this.epsilon = Double.parseDouble(epsilon);
+    this.minPoints = Integer.parseInt(minPoints);
+    this.euclidean = euclidean.equals("true");
+    computeOptics();
+  }
+  
+  public static ArrayList<OpticsData> initData(String filename, String[] attNames) throws IOException {
+    ArrayList<OpticsData> retVals = new ArrayList<OpticsData>();
+    BufferedReader file = null;
     try {
-      this.file = new BufferedReader(new FileReader(filename));
+      file = new BufferedReader(new FileReader(filename));
     }
     catch (FileNotFoundException e) {
       System.out.println("Can not find file: " + filename);
     }
-    this.attributeNames = attributeNames;
-    this.epsilon = Double.parseDouble(epsilon);
-    this.minPoints = Integer.parseInt(minPoints);
-    this.euclidean = euclidean.equals("true");
-    initData();
-  }
-  
-  public void initData() throws IOException {
     System.out.println("Initializing Data");
-    String line = this.file.readLine();
+    String line = file.readLine();
     int count = 0;
     while (line != null) {
       String[] lineVals = line.split(",");
       HashMap<String, Double> attributes = new HashMap<String, Double>();
-      for (int i = 0; i < this.attributeNames.length; i++) {
+      for (int i = 0; i < attNames.length; i++) {
         LinkedList<Double> values = new LinkedList<Double>();
         for (int j = i*7; j < (i*7)+7; j++) {
           values = insertValue(values, Double.parseDouble(lineVals[j]));
         }
-        attributes.put(this.attributeNames[i], values.get(values.size()/2));
+        attributes.put(attNames[i], values.get(values.size()/2));
       }
       double buzzVal = Double.parseDouble(lineVals[lineVals.length - 1]);
-      this.dataset.add(new OpticsData(attributes, (buzzVal == 1.0)));
+      retVals.add(new OpticsData(attributes, (buzzVal == 1.0)));
       line = file.readLine();
       //System.out.println("Line: " + count++);
     }
-    computeOptics();
+    return retVals;
   }
   
-  public LinkedList<Double> insertValue(LinkedList<Double> values, double value) {
+  public static ArrayList<OpticsTestingData> initTestingData(String filename, String[] attNames) throws IOException {
+      ArrayList<OpticsTestingData> retVals = new ArrayList<OpticsTestingData>();
+      BufferedReader file = null;
+      try {
+        file = new BufferedReader(new FileReader(filename));
+      }
+      catch (FileNotFoundException e) {
+        System.out.println("Can not find file: " + filename);
+      }
+      System.out.println("Initializing Data");
+      String line = file.readLine();
+      int count = 0;
+      while (line != null) {
+        String[] lineVals = line.split(",");
+        HashMap<String, Double> attributes = new HashMap<String, Double>();
+        for (int i = 0; i < attNames.length; i++) {
+          LinkedList<Double> values = new LinkedList<Double>();
+          for (int j = i*7; j < (i*7)+7; j++) {
+            values = insertValue(values, Double.parseDouble(lineVals[j]));
+          }
+          attributes.put(attNames[i], values.get(values.size()/2));
+        }
+        double buzzVal = Double.parseDouble(lineVals[lineVals.length - 1]);
+        retVals.add(new OpticsTestingData(attributes, (buzzVal == 1.0)));
+        line = file.readLine();
+        //System.out.println("Line: " + count++);
+      }
+      return retVals;
+    }
+  
+  public static LinkedList<Double> insertValue(LinkedList<Double> values, double value) {
     LinkedList<Double> a = values;
     if (a.size() == 0) {
       a.add(value);
@@ -147,18 +177,10 @@ public class Optics extends ClusteringAlgorithm {
     output.println("Number of Clusters, " + this.clusters.size());
     String metric = (euclidean) ? "Euclidean" : "Manhattan";
     output.println("Distance Metric, " + metric);
-    double totalBuzz = 0;
-    double totalNonBuzz = 0;
-    for (OpticsData point : this.dataset) {
-      if (point.getBuzz()) totalBuzz+=1;
-      else totalNonBuzz+=1;
-    }
-    output.println("Number of Buzz, " + totalBuzz);
-    totalBuzz /= this.dataset.size();
-    output.println("Percent Buzz, " + totalBuzz);
-    output.println("Number of NonBuzz, " + totalNonBuzz);
-    totalNonBuzz /= this.dataset.size();
-    output.println("Percent NonBuzz, " + totalNonBuzz);
+    output.println("Precision, " + this.precision);
+    output.println("Recall, " + this.recall);
+    output.println("Accuracy, " + this.accuracy);
+    output.println("F-1, " + this.f1);
     output.println("Parent Entropy, " + this.parentEntropy);
     output.println("Weighted Entropy, " + this.weightedEntropy);
     output.println("Elapsed Time, " + this.time);
@@ -209,10 +231,54 @@ public class Optics extends ClusteringAlgorithm {
     }
   }
   
+  public OpticsTestingData predict(OpticsTestingData point) {
+    double smallestDistance = Double.POSITIVE_INFINITY;
+    OpticsCluster smallest = null;
+    for (int i = 0; i < this.clusters.size(); i++) {
+      double distance = this.clusters.get(i).distance(point, this.euclidean);
+      if (distance < smallestDistance) {
+        smallestDistance = distance;
+        smallest = this.clusters.get(i);
+      }
+    }
+    point.setPrediction(smallest.classCount(true) >= smallest.classCount(false));
+    return point;
+  }
+  
+  public void predictionAnalysis(ArrayList<OpticsTestingData> initTestingData) {
+    ArrayList<OpticsTestingData> testingData = new ArrayList<OpticsTestingData>();
+    for (OpticsTestingData initPoint : initTestingData) {
+      testingData.add(predict(initPoint));
+    }
+    confusionMatrix(testingData);
+  }
+  
+  public void confusionMatrix(ArrayList<OpticsTestingData> testingData) {
+    double truePositives = 0;
+    double trueNegatives = 0;
+    double falsePositives = 0; 
+    double falseNegatives = 0;
+    for (OpticsTestingData point : testingData) {
+      if (point.getBuzz() && point.getPrediction()) truePositives += 1;
+      if (!point.getBuzz() && !point.getPrediction()) trueNegatives += 1;
+      if (!point.getBuzz() && point.getPrediction()) falsePositives += 1;
+      if (point.getBuzz() && !point.getPrediction()) truePositives += 1;
+    }
+    this.precision = truePositives/(truePositives + falsePositives);
+    this.recall = truePositives/(truePositives + falseNegatives);
+    this.accuracy = (truePositives + trueNegatives)/(double) testingData.size();
+    this.f1 = (2 * this.recall * this.precision)/(this.recall + this.precision);
+  }
+  
   //java Optics <filename> <epsilon> <minPoints> <euclidean>
   public static void main(String[] args) throws IOException {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};
-    Optics optics = new Optics(args[0], initAttNames, args[1], args[2], args[3]);
+    ArrayList<OpticsData> trainingData = initData(args[0], initAttNames);
+    Optics optics = new Optics(trainingData, args[1], args[2], args[3]);
+    
+    //Testing
+    ArrayList<OpticsTestingData> testingData = initTestingData("1000samples.test.data", initAttNames);
+    optics.predictionAnalysis(testingData);
     optics.output(args[0]);
     System.out.println("Finished");
   }

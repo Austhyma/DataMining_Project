@@ -1,4 +1,5 @@
 import java.util.*;
+import java.math.*;
 
 public class OpticsCluster {
   //initial fields
@@ -85,6 +86,17 @@ public class OpticsCluster {
   
   public double entropy(double probability) {
     return probability * log2(probability);
+  }
+  
+  public double distance(OpticsTestingData point, boolean euclidean) {
+    double distance = 0;
+    for (OpticsData clusterPoint : this.points) {
+      for (String attribute : clusterPoint.getAttributes().keySet()) {
+        double manValue = Math.abs(clusterPoint.getAttribute(attribute) - point.getAttribute(attribute));
+        distance += (euclidean) ? Math.pow(manValue, 2) : manValue;
+      }
+    }
+    return (euclidean) ? Math.sqrt(distance) : distance;
   }
 }
 

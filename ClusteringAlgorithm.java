@@ -6,8 +6,17 @@ public class ClusteringAlgorithm {
   protected ArrayList<OpticsCluster> clusters = new ArrayList<OpticsCluster>();
   protected ArrayList<OpticsData> dataset = new ArrayList<OpticsData>();
   protected double parentEntropy;
+  //Prediction Analysis Variables
+  protected double recall;
+  protected double accuracy;
+  protected double precision;
+  protected double f1;
   
   public double getInfoGain() {return this.infoGain;}
+  public double getRecall() {return this.recall;}
+  public double getAccuracy() {return this.accuracy;}
+  public double getPrecision() {return this.precision;}
+  public double getF1() {return this.f1;}
   
   public void calculateEntropy() {
     System.out.println("Calculating Entropy");

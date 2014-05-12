@@ -77,6 +77,19 @@ public class Cluster2 extends ClusteringAlgorithmGA {
     return (dist/(double)(this.points.size() * other.getPoints().size()));
   }
    
+   public double distance(GATestingData other) {
+    double dist = 0.0;
+    for(int i = 0; i < this.points.size(); i++) {
+        for (Iterator<String> stuff = this.points.get(i).getAttributes().keySet().iterator() ; stuff.hasNext();) {
+          String current = stuff.next();
+          double manValue = Math.pow(this.points.get(i).getAttribute(current) -
+                                     other.getAttribute(current), 2);
+          dist += manValue;
+        }             
+      }
+    return dist;
+  }
+   
    public double classCount(boolean buzz) {
     double counter = 0;
     for (int i = 0; i < points.size(); i++) {

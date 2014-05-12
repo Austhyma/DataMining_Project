@@ -17,6 +17,10 @@ public class GroupAverage {
   public double wss = 0.0;
   public double weightedEntropy = 0.0;
   public double infoGain = 0.0;
+  protected double recall;
+  protected double accuracy;
+  protected double precision;
+  protected double f1;
   //Stuff for output
   
   
@@ -52,6 +56,10 @@ public class GroupAverage {
     calculateInfoGain();
   }
   
+  public double getRecall() {return this.recall;}
+  public double getAccuracy() {return this.accuracy;}
+  public double getPrecision() {return this.precision;}
+  public double getF1() {return this.f1;}
   
   //initialize the data
   public void initData() throws IOException {    
@@ -78,7 +86,37 @@ public class GroupAverage {
     }
   }
   
-  public LinkedList<Double> insertValue(LinkedList<Double> values, double value) {
+  public static ArrayList<GATestingData> initTestingData(String filename, String[] attNames) throws IOException {
+      ArrayList<GATestingData> retVals = new ArrayList<GATestingData>();
+      BufferedReader file = null;
+      try {
+        file = new BufferedReader(new FileReader(filename));
+      }
+      catch (FileNotFoundException e) {
+        System.out.println("Can not find file: " + filename);
+      }
+      System.out.println("Initializing Data");
+      String line = file.readLine();
+      int count = 0;
+      while (line != null) {
+        String[] lineVals = line.split(",");
+        HashMap<String, Double> attributes = new HashMap<String, Double>();
+        for (int i = 0; i < attNames.length; i++) {
+          LinkedList<Double> values = new LinkedList<Double>();
+          for (int j = i*7; j < (i*7)+7; j++) {
+            values = insertValue(values, Double.parseDouble(lineVals[j]));
+          }
+          attributes.put(attNames[i], values.get(values.size()/2));
+        }
+        double buzzVal = Double.parseDouble(lineVals[lineVals.length - 1]);
+        retVals.add(new GATestingData(attributes, (buzzVal == 1.0)));
+        line = file.readLine();
+        //System.out.println("Line: " + count++);
+      }
+      return retVals;
+    }
+  
+  public static LinkedList<Double> insertValue(LinkedList<Double> values, double value) {
     LinkedList<Double> a = values;
     if (a.size() == 0) {
       a.add(value);
@@ -165,6 +203,11 @@ public class GroupAverage {
     output.println("BSS , " + bss);
     output.println("TotalWSS , " + wss);
     output.println("TotalInfoGain , " + this.infoGain);
+    output.println("---------------------------------------------");
+    output.println("Precision , " + this.precision);
+    output.println("Recall , " + this.recall);
+    output.println("F1 , " + this.f1);
+    output.println("Accuracy , " + this.accuracy);
     output.close();
   } 
   
@@ -231,12 +274,67 @@ public class GroupAverage {
     this.infoGain = 1.0 - this.weightedEntropy;
   } 
   
+  public GATestingData predict(GATestingData point) {
+    double smallestDistance = Double.POSITIVE_INFINITY;
+    Cluster2 smallest = null;
+    for (int i = 0; i < this.clusters.size(); i++) {
+      double distance = this.clusters.get(i).distance(point);
+      if (distance < smallestDistance) {
+        smallestDistance = distance;
+        smallest = this.clusters.get(i);
+      }
+    }
+    point.setPrediction(smallest.classCount(true) >= smallest.classCount(false));
+    return point;
+  }
+  
+  public void predictionAnalysis(ArrayList<GATestingData> initTestingData) {
+    ArrayList<GATestingData> testingData = new ArrayList<GATestingData>();
+    for (GATestingData initPoint : initTestingData) {
+      testingData.add(predict(initPoint));
+    }
+    confusionMatrix(testingData);
+  }
+  
+  public void confusionMatrix(ArrayList<GATestingData> testingData) {
+    double truePositives = 0;
+    double trueNegatives = 0;
+    double falsePositives = 0; 
+    double falseNegatives = 0;
+    for (GATestingData point : testingData) {
+      if (point.getBuzz() && point.getPrediction()) truePositives += 1;
+      if (!point.getBuzz() && !point.getPrediction()) trueNegatives += 1;
+      if (!point.getBuzz() && point.getPrediction()) falsePositives += 1;
+      if (point.getBuzz() && !point.getPrediction()) falseNegatives += 1;
+    }
+    if(truePositives == 0) {
+      this.precision = 0;
+      this.recall = 0;
+      this.f1 = 0;
+    }
+    else {
+      this.precision = truePositives/(truePositives + falsePositives);
+      this.recall = truePositives/(truePositives + falseNegatives);
+      this.f1 = (2 * this.recall * this.precision)/(this.recall + this.precision);
+    }    
+    this.accuracy = (truePositives + trueNegatives)/(double) testingData.size();
+    System.out.println("truePositives: " + truePositives);
+    System.out.println("trueNegatives: " + trueNegatives);
+    System.out.println("falsePositives: " + falsePositives);
+    System.out.println("falseNegatives: " + falseNegatives);
+  }
+  
   
   //java GroupAverage <filename>
   public static void main(String[] args) throws IOException {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};
-    GroupAverage init = new GroupAverage("GroupAverage/2000samples.data", initAttNames, 2);
+    ArrayList<GATestingData> testingData = initTestingData("Twitter/1000samples.test.data", initAttNames);
+    
+    GroupAverage init = new GroupAverage("GroupAverage/2000samples.data", initAttNames, 2);    
+    init.predictionAnalysis(testingData);
     GroupAverage init2 = new GroupAverage("GroupAverage/2000samples.data", initAttNames, 4);
+    init2.predictionAnalysis(testingData);
     GroupAverage init3 = new GroupAverage("GroupAverage/2000samples.data", initAttNames, 8);
+    init3.predictionAnalysis(testingData);
   }
 }

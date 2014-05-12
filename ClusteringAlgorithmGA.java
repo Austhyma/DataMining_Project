@@ -10,11 +10,12 @@ public class ClusteringAlgorithmGA {
   public double getInfoGain() {return this.infoGain;}
   
   public void calculateEntropy() {
-    for (Cluster2 cluster : this.clusters) {
-      cluster.calculateEntropy();
-      double numClassLabel = cluster.getPoints().size();
-      double value = (numClassLabel/(double) this.dataset.size()) * cluster.getEntropy();
-      cluster.setWeightedEntropy(value);
+    for (int i = 0; i < clusters.size(); i++) {
+      Cluster2 current = clusters.get(i);
+      current.calcEntropy();
+      double numClassLabel = current.getPoints().size();
+      double value = (numClassLabel/(double) this.dataset.size()) * current.getEntropy();
+      current.setWeightedEntropy(value);
       this.weightedEntropy += value;
     }
 //    Cluster2 parents = new Cluster2(this.dataset);

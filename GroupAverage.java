@@ -13,10 +13,14 @@ public class GroupAverage {
   //Computed/resultant fields
   private ArrayList<Data> dataset = new ArrayList<Data>();
   private ArrayList<Cluster2> clusters = new ArrayList<Cluster2>();
+  public double bss = 0.0;
+  public double wss = 0.0;
+  public double weightedEntropy = 0.0;
+  public double infoGain = 0.0;
   //Stuff for output
   
   
-  public GroupAverage (String filename, String[] attributeNames) throws IOException {
+  public GroupAverage (String filename, String[] attributeNames, int n) throws IOException {
     try {
       this.file = new BufferedReader(new FileReader(filename));
     }
@@ -25,28 +29,27 @@ public class GroupAverage {
     }
     this.attributeNames = attributeNames;
     initData();
-    groupAverage();    
-    output("groupAverage2Clusters");
+    groupAverage(n);
+    output("groupAverage"+n+"Clusters");
   }
   
-  public void groupAverage() {
+  public void groupAverage(int n) {
     this.masterDistances = new double[dataset.size()][dataset.size()];
     calculateDistances();
     System.out.println("Clustering...");
-    while(this.clusters.size() != 2) {      
+    while(this.clusters.size() != n) {
       mergeClusters();
     }
-    System.out.println("Final Clusters: "+this.clusters.size());
     for(int i = 0; i < this.clusters.size(); i++) {
-      System.out.println("Cluster Size: "+this.clusters.get(i).getPoints().size());
-      this.clusters.get(i).calculateEntropy();
-      System.out.println("Entropy: "+this.clusters.get(i).weightedEntropy);
+      computeCentroid();
+      this.clusters.get(i).calcEntropy();
+      this.clusters.get(i).calculateWSS();
+      System.out.println("Buzzing: "+this.clusters.get(i).buzzing);
+      System.out.println("Entropy: "+this.clusters.get(i).getEntropy());
     }
-    for(int x = 0; x < masterDistances.length; x++) {
-      for(int y = 0; y < masterDistances.length; y++) {
-        System.out.println(masterDistances[x][y]);
-      }
-    }    
+    calculateWSS();
+    calculateBSS();
+    calculateInfoGain();
   }
   
   
@@ -153,31 +156,87 @@ public class GroupAverage {
     output.println("Number of Buzz, " + totalBuzz);
     output.println("Number of NonBuzz, " + totalNonBuzz);
     for(int i = 0; i < this.clusters.size(); i++) {
-      output.println("Entropy, " + this.clusters.get(i).weightedEntropy);
-      output.println("Info Gain , " + this.clusters.get(i).getInfoGain());
-    }    
+      output.println("---------------------------------------------");
+      output.println("Cluster "+i+ " size: "+this.clusters.get(i).getPoints().size());
+      output.println("Entropy, " + this.clusters.get(i).getEntropy());
+      output.println("WSS , " + this.clusters.get(i).getWSS());
+    }
+    output.println("---------------------------------------------");
+    output.println("BSS , " + bss);
+    output.println("TotalWSS , " + wss);
+    output.println("TotalInfoGain , " + this.infoGain);
     output.close();
-    // wss/bss?
   } 
   
-  /*public void updateMatrix() {
-    double[][] newMatrix = new double[this.clusters.size()][this.clusters.size()];
-    for(int i = 0; i < newMatrix.length; i++) {
-      for(int j = 0; j < newMatrix[i].length; j++) {        
-        if(i == j) {
-          newMatrix[i][j] = 0.0;
+  public ArrayList<Data> computeCentroid() {    
+    ArrayList<Data> returnValues = new ArrayList<Data>();
+    for (int i = 0; i < this.clusters.size(); i++) {
+      HashMap<String, Double> dataAttributes = new HashMap<String, Double>();
+      for (int j = 0; j < this.clusters.get(i).getPoints().size(); j++) {
+        Data data = this.clusters.get(i).getPoints().get(j);
+        for (Iterator<String> attribute = clusters.get(i).getPoints().get(j).getAttributes().keySet().iterator(); attribute.hasNext();) {
+          String current = attribute.next();
+          double total = (double) this.clusters.get(i).getPoints().size();
+          double value = (j == 0) ? (data.getAttribute(current)/total) : (dataAttributes.get(current) + data.getAttribute(current)/total);
+          dataAttributes.put(current, value);
         }
-        else {
-          newMatrix[i][j] = this.clusters.get(i).distance(this.clusters.get(j));
+      }
+      if (this.clusters.get(i).getPoints().size() > 0) {this.clusters.get(i).setCentroid(new Data(dataAttributes)); returnValues.add(new Data(dataAttributes));}
+      else {returnValues.add(this.clusters.get(i).getCentroid()); this.clusters.get(i).setCentroid(this.clusters.get(i).getCentroid());}
+    }
+    return returnValues;
+  }
+  
+  public void calculateBSS() {
+    HashMap<String, Double> dataAttributes = new HashMap<String, Double>();
+    for (int i = 0; i < clusters.size(); i++) {
+      for (int j = 0; j < clusters.get(i).getPoints().size(); j++) {
+        for (Iterator<String> stuff = clusters.get(i).getPoints().get(j).getAttributes().keySet().iterator(); stuff.hasNext();) {         
+          String current = stuff.next();
+          if (i == 0) {
+            dataAttributes.put(current, (clusters.get(i).getCentroid().getAttributes().get(current))/clusters.size());
+          }
+          else {
+            dataAttributes.put(current, dataAttributes.get(current) + (clusters.get(i).getCentroid().getAttributes().get(current))/clusters.size());
+          }
         }
       }
     }
-    this.masterDistances = newMatrix;
-  }*/
+    for (int i = 0; i < clusters.size(); i++) {
+      for (int j = 0; j < clusters.get(i).getPoints().size(); j++) {
+        for (Iterator<String> stuff = clusters.get(i).getCentroid().getAttributes().keySet().iterator(); stuff.hasNext();) {
+          String current = stuff.next();
+          double value = Math.pow((clusters.get(i).getCentroid().getAttribute(current) - dataAttributes.get(current) + (clusters.get(i).getCentroid().getAttributes().get(current))/clusters.size()), 2);
+          double manValue = value * clusters.get(i).getPoints().size();
+          bss += manValue;
+        }
+      }
+    }
+  }
+  
+  public void calculateWSS() {
+    for (int i = 0; i < clusters.size(); i++) {
+      clusters.get(i).calculateWSS();
+      wss += clusters.get(i).getWSS();
+    }  
+  }
+  
+  public void calculateInfoGain() {
+    for (int i = 0; i < clusters.size(); i++) {
+      Cluster2 current = clusters.get(i);
+      double numClassLabel = current.getPoints().size();
+      double value = (numClassLabel/this.dataset.size()) * current.getEntropy();
+      this.weightedEntropy += value;
+    }
+    this.infoGain = 1.0 - this.weightedEntropy;
+  } 
+  
   
   //java GroupAverage <filename>
   public static void main(String[] args) throws IOException {
     String[] initAttNames = {"NCD", "AI", "AS(NA)", "BL", "NAC", "AS(NAC)", "CS", "AT", "NA", "ADL", "NAD"};
-    GroupAverage init = new GroupAverage(args[0], initAttNames);
+    GroupAverage init = new GroupAverage("GroupAverage/1000samples.data", initAttNames, 2);
+    GroupAverage init2 = new GroupAverage("GroupAverage/1000samples.data", initAttNames, 4);
+    GroupAverage init3 = new GroupAverage("GroupAverage/1000samples.data", initAttNames, 8);
   }
 }

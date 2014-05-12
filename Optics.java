@@ -184,7 +184,7 @@ public class Optics extends ClusteringAlgorithm {
     output.println("Parent Entropy, " + this.parentEntropy);
     output.println("Weighted Entropy, " + this.weightedEntropy);
     output.println("Elapsed Time, " + this.time);
-    output.println("List of Clusters, Entropy, Average Core Distance, Size of Cluster");
+    output.println("List of Clusters, Entropy, Average Core Distance, Size of Cluster, Buzz, NonBuzz");
     int count = 0;
     for (OpticsCluster cluster : this.clusters) {
       String line = count + ", ";
@@ -196,7 +196,9 @@ public class Optics extends ClusteringAlgorithm {
       }
       total /= (double) cluster.size();
       line += total + ", ";
-      line += cluster.size();
+      line += cluster.size() + ", ";
+      line += cluster.classCount(true) + ", ";
+      line += cluster.classCount(false);
       output.println(line);
     }
     output.close();
@@ -231,18 +233,19 @@ public class Optics extends ClusteringAlgorithm {
     }
   }
   
-  public OpticsTestingData predict(OpticsTestingData point) {
+  public OpticsTestingData predict(OpticsTestingData testingPoint) {
     double smallestDistance = Double.POSITIVE_INFINITY;
-    OpticsCluster smallest = null;
-    for (int i = 0; i < this.clusters.size(); i++) {
-      double distance = this.clusters.get(i).distance(point, this.euclidean);
+    OpticsData smallest = null;
+    for (OpticsData point : this.dataset) {
+      if (point.getCoreDistance() == null) {continue;}
+      double distance = point.distance(testingPoint, this.euclidean);
       if (distance < smallestDistance) {
         smallestDistance = distance;
-        smallest = this.clusters.get(i);
+        smallest = point;
       }
     }
-    point.setPrediction(smallest.classCount(true) >= smallest.classCount(false));
-    return point;
+    testingPoint.setPrediction(smallest.getBuzz());
+    return testingPoint;
   }
   
   public void predictionAnalysis(ArrayList<OpticsTestingData> initTestingData) {
@@ -262,12 +265,15 @@ public class Optics extends ClusteringAlgorithm {
       if (point.getBuzz() && point.getPrediction()) truePositives += 1;
       if (!point.getBuzz() && !point.getPrediction()) trueNegatives += 1;
       if (!point.getBuzz() && point.getPrediction()) falsePositives += 1;
-      if (point.getBuzz() && !point.getPrediction()) truePositives += 1;
+      if (point.getBuzz() && !point.getPrediction()) falseNegatives += 1;
     }
-    this.precision = truePositives/(truePositives + falsePositives);
-    this.recall = truePositives/(truePositives + falseNegatives);
+    if (truePositives == 0) {this.precision = 0; this.recall = 0; this.f1 = 0;}
+    else {
+      this.precision = truePositives/(truePositives + falsePositives);
+      this.recall = truePositives/(truePositives + falseNegatives);
+      this.f1 = (2 * this.recall * this.precision)/(this.recall + this.precision);
+    }
     this.accuracy = (truePositives + trueNegatives)/(double) testingData.size();
-    this.f1 = (2 * this.recall * this.precision)/(this.recall + this.precision);
     System.out.println("truePositives: " + truePositives);
     System.out.println("trueNegatives: " + trueNegatives);
     System.out.println("falsePositives: " + falsePositives);

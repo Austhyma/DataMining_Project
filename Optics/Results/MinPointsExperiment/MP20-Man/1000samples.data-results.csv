@@ -1,0 +1,26 @@
+Size of Dataset, 1000
+Epsilon, 0.5
+MinPoints, 20
+InfoGain, 1.0
+Number of Clusters, 12
+Distance Metric, Manhattan
+Precision, 0.0
+Recall, 0.0
+Accuracy, 0.803
+F-1, 0.0
+Parent Entropy, 0.7158873656827773
+Weighted Entropy, 0.0
+Elapsed Time, 0
+List of Clusters, Entropy, Average Core Distance, Size of Cluster, Buzz, NonBuzz
+0, 0.0, 1.9545454545454545E-6, 22, 0.0, 22.0
+1, 0.0, 0.0, 68, 0.0, 68.0
+2, 0.0, 6.7142857142857126E-6, 21, 0.0, 21.0
+3, 0.0, 2.0312500000000004E-7, 64, 0.0, 64.0
+4, 0.0, 2.0E-6, 5, 0.0, 5.0
+5, 0.0, 1.1111111111111114E-7, 18, 0.0, 18.0
+6, 0.0, 3.095238095238095E-6, 21, 0.0, 21.0
+7, 0.0, 2.7500000000000004E-6, 4, 0.0, 4.0
+8, 0.0, 0.0, 5, 0.0, 5.0
+9, 0.0, 2.0E-6, 1, 0.0, 1.0
+10, 0.0, 5.0E-6, 4, 0.0, 4.0
+11, 0.0, 7.0E-6, 1, 0.0, 1.0
